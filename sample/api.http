@@ -8,6 +8,10 @@ Accept: application/json
 GET {{api}}/actuator/health
 Accept: application/json
 
+### Catalogue public
+GET {{api}}/api/v1/catalog
+Accept: application/json
+
 ### Lister les projets
 GET {{api}}/api/projects
 Accept: application/json

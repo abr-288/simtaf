@@ -8,6 +8,7 @@ Installez Node.js 22+, pnpm 10+, Java 21+, Flutter stable et PostgreSQL 16+. Cop
 
 Depuis la racine : `pnpm install`, puis `pnpm dev`. Admin : http://localhost:3001 ; SaaS : http://localhost:3000.
 
+Le catalogue public est disponible sur `http://localhost:3000/catalogue`. L’administration du catalogue est sur `http://localhost:3001/catalogue` et nécessite une session admin avec `catalog.manage`.
 
 ## Backend
 

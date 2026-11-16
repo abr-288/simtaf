@@ -51,6 +51,28 @@ class ProjectsApiTests {
                 .andExpect(jsonPath("$.length()").value(17));
     }
 
+    @Test
+    void catalogIsPublicAndManagementRequiresCatalogPermission() throws Exception {
+        String adminToken = loginAdmin();
+        mvc.perform(post("/api/admin/catalog")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"title":"Kit de démonstration","category":"fournitures","description":"Un kit scolaire","unitPrice":7500,"costEstimate":6000,"unit":"kit","emoji":"🎒","active":true}
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.kind").value("don"));
+
+        mvc.perform(get("/api/catalog"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currency").value("XOF"))
+                .andExpect(jsonPath("$.items[0].title").value("Kit de démonstration"));
+
+        String donorToken = registerAndAuthenticate();
+        mvc.perform(get("/api/admin/catalog").header("Authorization", "Bearer " + donorToken))
+                .andExpect(status().isForbidden());
+    }
+
     private String loginAdmin() throws Exception {
         MvcResult request = mvc.perform(post("/api/auth/otp/request")
                         .contentType(MediaType.APPLICATION_JSON)

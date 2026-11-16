@@ -15,3 +15,5 @@ Les applications web consomment le contrat REST. Les modules métier backend son
 ## Premier module : projets
 
 Le module `com.menewa.projects` possède le modèle `Project`, sa persistance et les routes `GET /api/projects` et `POST /api/projects`. Flyway crée le schéma via `V1__create_projects.sql`. Le SaaS lit la liste côté serveur et son formulaire crée un projet via une Server Action, en utilisant le client partagé. La configuration du backend côté serveur Next.js se fait avec `API_BASE_URL` (par défaut `http://localhost:8080/api`).
+
+Le module `com.menewa.catalog` sert le catalogue public (`GET /api/v1/catalog`, alias `/api/catalog`) et protège l’administration (`/api/v1/admin/catalog*`) avec la permission `catalog.manage`. Le SaaS lit les articles actifs ; l’admin peut ajouter ou activer/désactiver un article.

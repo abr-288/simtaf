@@ -1,4 +1,4 @@
-import type { AuthSession, CreateProjectInput, HealthStatus, IdentityUser, ManagedOtpRequestInput, OtpRequestResult, Project, SaveCatalogItemInput } from '@menewa/shared-types';
+import type { AuthSession, CatalogItem, CreateProjectInput, HealthStatus, IdentityUser, ManagedCatalogItem, OtpRequestInput, OtpRequestResult, Project, SaveCatalogItemInput } from '@menewa/shared-types';
 
 const apiBaseUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/api';
 
@@ -53,4 +53,37 @@ export function getIdentityPermissions(accessToken: string): Promise<string[]> {
 
 export function revokeIdentitySession(accessToken: string): Promise<void> {
   return identityRequest('logout', { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` } });
+}
+
+export async function getCatalog(): Promise<{ currency: string; items: CatalogItem[] }> {
+  const response = await fetch(`${apiBaseUrl}/catalog`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`Catalog request failed: ${response.status}`);
+  return response.json() as Promise<{ currency: string; items: CatalogItem[] }>;
+}
+
+export function getManagedCatalog(accessToken: string): Promise<ManagedCatalogItem[]> {
+  return catalogAdminRequest('/admin/catalog', { headers: { Authorization: `Bearer ${accessToken}` } });
+}
+
+export function saveCatalogItem(accessToken: string, input: SaveCatalogItemInput, id?: number): Promise<ManagedCatalogItem> {
+  return catalogAdminRequest(id ? `/admin/catalog/${id}` : '/admin/catalog', {
+    method: id ? 'PUT' : 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+}
+
+export function setCatalogItemActive(accessToken: string, id: number, active: boolean): Promise<ManagedCatalogItem> {
+  return catalogAdminRequest(`/admin/catalog/${id}/active`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ active }),
+  });
+}
+
+async function catalogAdminRequest<T>(path: string, init: RequestInit): Promise<T> {
+  const response = await fetch(`${apiBaseUrl}${path}`, { ...init, cache: 'no-store' });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(String(body.detail ?? body.message ?? `HTTP ${response.status}`));
+  return body as T;
 }

@@ -68,5 +68,28 @@ h1 { margin-bottom: 8px; font-size: 34px; letter-spacing: -1.2px; }
 .login-form button.secondary, .secondary { border: 1px solid #dfe7e1; background: #fff; color: #385248; }
 .login-form p { color: #68766e; font-size: 13px; line-height: 1.6; }
 .login-form .login-error { margin: 0; color: #a3372f; }
+.catalog-page { max-width: 1180px; margin: 0 auto; padding: 0 28px 56px; }
+.catalog-header { display: flex; height: 76px; align-items: center; justify-content: space-between; border-bottom: 1px solid #e8ede9; }
+.catalog-brand { color: #185a3d; font-size: 21px; font-weight: 800; letter-spacing: -.8px; }
+.catalog-login, .catalog-login-link { color: #237a55; font-size: 13px; font-weight: 700; }
+.catalog-intro { padding: 58px 0 40px; }
+.catalog-intro h1 { font-size: clamp(36px, 5vw, 58px); line-height: 1.1; }
+.catalog-intro > p:last-child { max-width: 420px; color: #77837d; font-size: 15px; line-height: 1.7; }
+.catalog-section { margin: 35px 0; }
+.catalog-section-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+.catalog-section-heading h2 { margin: 0; font-size: 20px; }
+.catalog-section-heading span { color: #77837d; font-size: 12px; }
+.catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.catalog-card { display: flex; min-height: 250px; flex-direction: column; padding: 20px; border: 1px solid #e8ede9; border-radius: 13px; background: #fff; }
+.catalog-card-icon { display: grid; width: 44px; height: 44px; margin-bottom: 16px; place-items: center; border-radius: 12px; background: #edf6ef; font-size: 23px; }
+.catalog-card-category { margin-bottom: 5px; color: #237a55; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.catalog-card h3 { margin-bottom: 7px; font-size: 15px; }
+.catalog-card-description { flex: 1; color: #77837d; font-size: 12px; line-height: 1.6; }
+.catalog-card-footer { display: flex; align-items: baseline; justify-content: space-between; padding-top: 12px; border-top: 1px solid #edf0ed; }
+.catalog-card-footer strong { color: #185a3d; font-size: 14px; }
+.catalog-card-footer span { color: #849088; font-size: 11px; }
+.catalog-unavailable { padding: 20px; border: 1px solid #e8ede9; border-radius: 10px; background: white; color: #68766e; }
+.catalog-footer { margin-top: 58px; padding-top: 18px; border-top: 1px solid #e8ede9; color: #89948d; font-size: 11px; }
+.catalog-login-link { position: absolute; top: calc(50% + 280px); }
 @media (max-width: 1000px) { .sidebar { width: 210px; } .workspace { margin-left: 210px; } .content { padding: 38px 28px 56px; } .topbar { padding: 0 28px; } .project-layout { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .sidebar { position: static; width: auto; height: auto; flex-direction: row; align-items: center; justify-content: space-between; padding: 14px 18px; border-right: 0; border-bottom: 1px solid #e8ede9; } .sidebar__label, .sidebar__link, .sidebar__footer { display: none; } .workspace { margin-left: 0; } .topbar { height: 56px; padding: 0 20px; } .content { padding: 30px 18px 44px; } .page-heading { align-items: flex-start; gap: 10px; } h1 { font-size: 29px; } .project-count { white-space: nowrap; } .project-list { padding: 18px; } .project-card { align-items: flex-start; } .project-card time { padding-top: 3px; } }

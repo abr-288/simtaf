@@ -22,6 +22,8 @@ management:
       exposure:
         include: health,info
 menewa:
+  catalog:
+    seed-demo-data: ${CATALOG_SEED_DEMO_DATA:false}
   identity:
     bootstrap-admin-phone: ${IDENTITY_BOOTSTRAP_ADMIN_PHONE:}
     bootstrap-admin-name: ${IDENTITY_BOOTSTRAP_ADMIN_NAME:Administrateur Menewa}

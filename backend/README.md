@@ -8,6 +8,7 @@ Configurez PostgreSQL, puis lancez `./gradlew bootRun`. Vérification de santé 
 
 Le premier module métier est `projects` : `GET /api/projects` liste les projets et `POST /api/projects` en crée un. Flyway initialise la table à partir de `src/main/resources/db/migration`. Le SaaS consomme ces routes via `packages/api-client`.
 
+Le module `catalog` expose `GET /api/catalog` publiquement et les opérations `/api/admin/catalog*` aux détenteurs de `catalog.manage`. Pour reprendre les articles de Naya, après Flyway, exécutez `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/import-legacy-catalog.sql`. Le seed local (quelques tarifs de démonstration) est contrôlé par `CATALOG_SEED_DEMO_DATA=true` ; il est désactivé par défaut.
 
 ## Identité et accès
 

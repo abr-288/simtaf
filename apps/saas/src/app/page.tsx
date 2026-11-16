@@ -47,6 +47,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         <a className="brand" href="/" aria-label="Menewa, accueil"><span className="brand__mark">m</span><span>menewa</span></a>
         <p className="sidebar__label">Espace de travail</p>
         <a className="sidebar__link sidebar__link--active" href="/"><span aria-hidden="true">▦</span> Projets</a>
+        <a className="sidebar__link" href="/catalogue"><span aria-hidden="true">🎁</span> Catalogue public</a>
         <div className="sidebar__footer"><span className={`connection-dot ${apiAvailable ? 'is-online' : ''}`} />{apiAvailable ? 'API connectée' : 'API indisponible'}</div>
       </aside>
 
