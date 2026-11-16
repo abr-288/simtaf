@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+.next/
+.turbo/
+dist/
+build/
+coverage/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.flutter-build/
+apps/mobile/build/
+apps/mobile/.flutter-plugins
+apps/mobile/ios/Pods/
+apps/mobile/ios/Flutter/Generated.xcconfig
+apps/mobile/ios/Flutter/flutter_export_environment.sh
+apps/mobile/android/.gradle/
+
+# Java / Gradle
+.gradle/
+**/target/
+backend/.idea/
+
+# OS / IDE
+.DS_Store
+.idea/workspace.xml

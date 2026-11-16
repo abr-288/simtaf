@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: menewa-backend
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/menewa}
+    username: ${DATABASE_USERNAME:menewa}
+    password: ${DATABASE_PASSWORD:change-me}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  modulith:
+    events:
+      jdbc:
+        schema-initialization:
+          enabled: true
+server:
+  port: ${API_PORT:8080}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

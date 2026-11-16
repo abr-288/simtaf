@@ -1,0 +1,22 @@
+@api = http://localhost:8080
+
+### Santé API
+GET {{api}}/api/health
+Accept: application/json
+
+### Santé Actuator
+GET {{api}}/actuator/health
+Accept: application/json
+
+### Lister les projets
+GET {{api}}/api/projects
+Accept: application/json
+
+### Créer un projet
+POST {{api}}/api/projects
+Content-Type: application/json
+
+{
+  "name": "Premier projet Menewa",
+  "description": "Projet créé depuis le SaaS"
+}

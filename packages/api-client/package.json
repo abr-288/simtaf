@@ -1,0 +1,22 @@
+{
+  "name": "@menewa/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@menewa/shared-types": "workspace:*"
+  },
+  "devDependencies": {
+    "@menewa/typescript-config": "workspace:*",
+    "typescript": "^5.9.3",
+    "@types/node": "^22.18.6"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "menewa-monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.22.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write \"**/*.{md,json,yml,yaml,ts,tsx,js,mjs}\"",
+    "format:check": "prettier --check \"**/*.{md,json,yml,yaml,ts,tsx,js,mjs}\"",
+    "clean": "turbo clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.8",
+    "typescript": "^5.9.3"
+  }
+}
