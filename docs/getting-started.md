@@ -8,9 +8,10 @@ Installez Node.js 22+, pnpm 10+, Java 21+, Flutter stable et PostgreSQL 16+. Cop
 
 Depuis la racine : `pnpm install`, puis `pnpm dev`. Admin : http://localhost:3001 ; SaaS : http://localhost:3000.
 
+
 ## Backend
 
-Démarrez PostgreSQL avec `docker compose up -d postgres`, puis dans `backend`, exécutez `./gradlew bootRun`. API : http://localhost:8080/api/health.
+Démarrez PostgreSQL avec `docker compose up -d postgres`. Pour charger les variables dans le terminal, utilisez `set -a; source .env; set +a`, puis lancez le backend avec `cd backend && ./gradlew bootRun`. Pour le premier accès admin local, configurez `IDENTITY_BOOTSTRAP_ADMIN_PHONE=+22890000001`. En développement, l’OTP est journalisé et exposé par l’API (`OTP_DEV_MODE=true`). En production, définissez `OTP_DEV_MODE=false`, `OTP_SECRET`, `SMS_GATEWAY_URL` et éventuellement `SMS_GATEWAY_TOKEN`. API : http://localhost:8080/api/health.
 
 ## Mobile
 

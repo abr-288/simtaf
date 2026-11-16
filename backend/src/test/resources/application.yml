@@ -7,3 +7,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+menewa:
+  identity:
+    otp:
+      dev-mode: true
+      secret: test-secret-for-otp-hashing

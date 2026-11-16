@@ -21,3 +21,16 @@ management:
     web:
       exposure:
         include: health,info
+menewa:
+  identity:
+    bootstrap-admin-phone: ${IDENTITY_BOOTSTRAP_ADMIN_PHONE:}
+    bootstrap-admin-name: ${IDENTITY_BOOTSTRAP_ADMIN_NAME:Administrateur Menewa}
+    otp:
+      dev-mode: ${OTP_DEV_MODE:true}
+      secret: ${OTP_SECRET:menewa-local-development-secret-change-before-production}
+      ttl: PT5M
+      max-sends: 3
+      send-window: PT10M
+      max-attempts: 5
+    session:
+      ttl: P14D

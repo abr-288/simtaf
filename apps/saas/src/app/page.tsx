@@ -1,6 +1,10 @@
 import { getProjects } from '@menewa/api-client';
 import type { Project } from '@menewa/shared-types';
 import { createProjectAction } from './projects/actions';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { getIdentityUser } from '@menewa/api-client';
+import { logoutAction } from './logout/actions';
 
 type HomePageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -23,14 +27,19 @@ function ProjectCard({ project }: { project: Project }) {
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const params = await searchParams;
+  const token = (await cookies()).get('menewa_saas_session')?.value;
+  if (!token) redirect('/login');
+  let user;
   let projects: Project[] = [];
   let apiAvailable = true;
 
   try {
-    projects = await getProjects();
+    user = await getIdentityUser(token);
+    projects = await getProjects(token);
   } catch {
     apiAvailable = false;
   }
+  if (!user) redirect('/login?error=session');
 
   return (
     <main className="dashboard">
@@ -42,7 +51,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       </aside>
 
       <section className="workspace">
-        <header className="topbar"><span>Mon espace</span><div className="avatar" aria-label="Compte Menewa">M</div></header>
+        <header className="topbar"><span>Mon espace · {user.name || user.phone}</span><form action={logoutAction}><button className="secondary">Se déconnecter</button></form><div className="avatar" aria-label={`Compte ${user.name || user.phone}`}>{(user.name || 'M').slice(0, 1).toUpperCase()}</div></header>
         <div className="content">
           <div className="page-heading">
             <div><p className="eyebrow">VOTRE ACTIVITÉ</p><h1>Projets</h1><p className="page-description">Organisez et suivez vos projets au même endroit.</p></div>
