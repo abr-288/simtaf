@@ -8,6 +8,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc turbo.json ./
 COPY packages packages
 COPY apps/admin apps/admin
 COPY apps/saas apps/saas
+COPY e2e/package.json e2e/package.json
 RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @menewa/${APP} build
 ENV NODE_ENV=production APP=${APP}

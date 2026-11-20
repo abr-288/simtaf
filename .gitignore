@@ -42,3 +42,7 @@ deploy/dev/.access-password
 
 # Build TypeScript incrémental
 *.tsbuildinfo
+
+# Rapports Playwright
+e2e/test-results/
+e2e/playwright-report/

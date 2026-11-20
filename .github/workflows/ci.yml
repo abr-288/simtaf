@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, 'feature/**']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      e2e:
+        description: Lancer les tests de bout en bout contre la zone de dev
+        type: boolean
+        default: false
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (tests sur PostgreSQL + contrat)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Tests (PostgreSQL 16 embarqué, sans Docker)
+        working-directory: backend
+        run: ./gradlew test --no-daemon
+      - name: Le contrat exporté est à jour
+        run: git diff --exit-code -- docs/api || (echo "::error::docs/api n'est pas à jour : lancez ./gradlew test et commitez." && exit 1)
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: rapports-tests-backend
+          path: backend/build/reports/tests
+
+  web:
+    name: Web (contrat, types, lint, build)
+    runs-on: ubuntu-latest
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Fichiers générés à jour et appels clients conformes au contrat
+        run: pnpm contract:check
+      - name: Types
+        run: pnpm -r --filter "./packages/*" --filter "./apps/*" --filter ./e2e run typecheck
+      - name: Lint
+        run: pnpm --filter @menewa/admin --filter @menewa/saas run lint
+      - name: Build
+        run: pnpm --filter @menewa/admin --filter @menewa/saas run build
+
+  mobile:
+    name: Mobile (flutter analyze + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  e2e:
+    name: Bout en bout (zone de dev)
+    if: github.event_name == 'workflow_dispatch' && inputs.e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @menewa/e2e...
+      - run: pnpm --filter @menewa/e2e exec playwright install --with-deps chromium
+      - name: Playwright
+        run: pnpm --filter @menewa/e2e test
+        env:
+          SAAS_URL: ${{ vars.E2E_SAAS_URL }}
+          ADMIN_URL: ${{ vars.E2E_ADMIN_URL }}
+          DEMO_PASSWORD: ${{ secrets.E2E_DEMO_PASSWORD }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rapport-playwright
+          path: e2e/playwright-report
