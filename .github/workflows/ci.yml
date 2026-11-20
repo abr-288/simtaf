@@ -30,7 +30,11 @@ jobs:
         working-directory: backend
         run: ./gradlew test --no-daemon
       - name: Le contrat exporté est à jour
-        run: git diff --exit-code -- docs/api || (echo "::error::docs/api n'est pas à jour : lancez ./gradlew test et commitez." && exit 1)
+        run: |
+          if ! git diff --exit-code -- docs/api; then
+            echo "::error::docs/api n'est pas à jour : lancez ./gradlew test et commitez."
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
