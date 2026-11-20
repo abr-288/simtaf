@@ -1,5 +1,6 @@
-import { LoginForm } from './LoginForm';
+import { redirect } from 'next/navigation';
 
+/** Ancienne adresse : la connexion se fait sur /connexion (comme sur Menewa Naya). */
 export default function LoginPage() {
-  return <main className="login-shell"><LoginForm /><a href="/catalogue" className="catalog-login-link">Voir le catalogue public</a></main>;
+  redirect('/connexion');
 }

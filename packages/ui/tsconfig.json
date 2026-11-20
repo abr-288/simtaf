@@ -1,0 +1,5 @@
+{
+  "extends": "@menewa/typescript-config/nextjs.json",
+  "compilerOptions": { "incremental": false, "plugins": [] },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

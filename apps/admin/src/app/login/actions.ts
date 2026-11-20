@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requestOtp, revokeIdentitySession, verifyOtp } from '@menewa/api-client';
+import { SESSION_COOKIE } from '@/lib/session';
 
 export type AdminLoginState = { step: 'phone' | 'code'; phone?: string; devCode?: string; error?: string };
 
@@ -24,12 +25,12 @@ export async function adminLoginAction(_previous: AdminLoginState, formData: For
       await revokeIdentitySession(session.accessToken);
       return { step: 'phone', phone, error: 'Ce compte ne possède pas de droits administrateur.' };
     }
-    (await cookies()).set('menewa_admin_session', session.accessToken, {
+    (await cookies()).set(SESSION_COOKIE, session.accessToken, {
       httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/',
       expires: new Date(session.expiresAt),
     });
   } catch (error) {
     return { step: 'code', phone, error: error instanceof Error ? error.message : 'Code invalide.' };
   }
-  redirect('/');
+  redirect('/admin');
 }

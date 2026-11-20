@@ -15,7 +15,9 @@
     "@menewa/shared-types": "workspace:*",
     "next": "^15.5.6",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "@menewa/ui": "workspace:*",
+    "lucide-react": "^1.61.0"
   },
   "devDependencies": {
     "@menewa/eslint-config": "workspace:*",
@@ -24,6 +26,9 @@
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
     "eslint": "^9.37.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "tailwindcss": "4.1.17",
+    "@tailwindcss/postcss": "4.1.17",
+    "postcss": "^8.5.6"
   }
 }

@@ -2,8 +2,9 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { requestOtp, verifyOtp } from '@menewa/api-client';
+import { requestOtp, revokeIdentitySession, sendContact, verifyOtp } from '@menewa/api-client';
 import type { OtpRequestInput } from '@menewa/shared-types';
+import { SESSION_COOKIE } from '@/lib/session';
 
 export type LoginState = { step: 'phone' | 'code'; phone?: string; mode?: 'login' | 'register'; name?: string; role?: string; devCode?: string; error?: string };
 
@@ -11,10 +12,11 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
   const step = String(formData.get('step') ?? 'phone');
   const phone = String(formData.get('phone') ?? '').trim();
   const mode = String(formData.get('mode') ?? 'login') === 'register' ? 'register' : 'login';
-  const name = String(formData.get('name') ?? '').trim();
+  const name = String(formData.get('name') ?? '').trim().slice(0, 80);
   const role = String(formData.get('role') ?? 'donor');
 
   if (step === 'phone') {
+    if (mode === 'register' && name.length < 2) return { step: 'phone', phone, mode, name, role, error: 'Veuillez indiquer votre nom.' };
     const input: OtpRequestInput = { phone, mode, ...(mode === 'register' ? { name, role } : {}) };
     try {
       const result = await requestOtp(input);
@@ -26,13 +28,27 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
 
   try {
     const session = await verifyOtp(phone, String(formData.get('code') ?? '').replace(/\D/g, ''));
-    const jar = await cookies();
-    jar.set('menewa_saas_session', session.accessToken, {
-      httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/',
-      expires: new Date(session.expiresAt),
+    if (['admin', 'subadmin'].includes(session.user.role)) {
+      await revokeIdentitySession(session.accessToken).catch(() => undefined);
+      return { step: 'phone', phone, mode, error: 'Les comptes administrateurs se connectent sur la console d’administration.' };
+    }
+    (await cookies()).set(SESSION_COOKIE, session.accessToken, {
+      httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', expires: new Date(session.expiresAt),
     });
   } catch (error) {
     return { step: 'code', phone, mode, name, role, error: error instanceof Error ? error.message : 'Code invalide.' };
   }
-  redirect('/');
+  redirect('/espace');
+}
+
+export async function contactAction(_p: { ok?: string; error?: string } | null, fd: FormData): Promise<{ ok?: string; error?: string }> {
+  try {
+    const res = await sendContact({
+      name: String(fd.get('name') ?? '').trim(), email: String(fd.get('email') ?? '').trim() || undefined,
+      phone: String(fd.get('phone') ?? '').trim() || undefined, subject: String(fd.get('subject') ?? '').trim(), message: String(fd.get('message') ?? '').trim(),
+    });
+    return { ok: res.ok };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : 'Envoi impossible.' };
+  }
 }

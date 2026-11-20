@@ -36,3 +36,9 @@ backend/.idea/
 # OS / IDE
 .DS_Store
 .idea/workspace.xml
+
+# Zone de dev : mot de passe d'accès généré
+deploy/dev/.access-password
+
+# Build TypeScript incrémental
+*.tsbuildinfo

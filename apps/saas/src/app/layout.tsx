@@ -1,4 +1,13 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+import { Caveat, Poppins } from 'next/font/google';
 import './globals.css';
-export const metadata: Metadata = { title: 'Menewa SaaS', description: 'Espace Menewa' };
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="fr"><body>{children}</body></html>; }
+
+const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-poppins' });
+const caveat = Caveat({ subsets: ['latin'], weight: ['500', '700'], variable: '--font-caveat' });
+
+export const metadata: Metadata = { title: 'Menewa Naya — Mon espace', description: 'Menewa Naya : plateforme solidaire de dons et de services communautaires.' };
+
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  return <html lang="fr" className={`${poppins.variable} ${caveat.variable}`}><body className="antialiased">{children}</body></html>;
+}

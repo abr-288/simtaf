@@ -1,48 +1,55 @@
-* { box-sizing: border-box; }
-html, body { margin: 0; min-height: 100%; }
-body { font-family: Arial, Helvetica, sans-serif; background: #f8fafc; color: #0f172a; }
-main { max-width: 960px; margin: 12vh auto; padding: 2rem; }
-h1 { font-size: clamp(2rem, 6vw, 3.5rem); margin-bottom: .5rem; }
-p { color: #475569; }
-.login-shell { display: grid; min-height: 100vh; place-items: center; padding: 24px; }
-.login-form { display: grid; width: min(100%, 420px); gap: 15px; padding: 32px; border: 1px solid #e2e8e4; border-radius: 16px; background: #fff; box-shadow: 0 16px 50px #1834280d; }
-.login-form h1 { margin-bottom: 6px; font-size: 25px; }
-.login-form label { display: grid; gap: 7px; font-size: 13px; font-weight: 600; }
-.login-form input { height: 42px; padding: 0 11px; border: 1px solid #dfe7e1; border-radius: 8px; }
-.login-form button, .secondary { min-height: 42px; padding: 0 14px; border: 0; border-radius: 8px; background: #237a55; color: white; cursor: pointer; font-weight: 700; }
-.login-form p { color: #68766e; font-size: 13px; line-height: 1.6; }
-.login-form .login-error { margin: 0; color: #a3372f; }
-.admin-home { max-width: 1000px; margin: 10vh auto; padding: 2rem; }
-.admin-home header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 24px; border-bottom: 1px solid #e2e8e4; }
-.admin-home h1 { margin-bottom: 8px; }
-.admin-home section { margin-top: 32px; }
-.admin-home ul { display: flex; flex-wrap: wrap; gap: 10px; padding: 0; list-style: none; }
-.admin-home li { padding: 8px 12px; border-radius: 8px; background: #eef6f0; color: #236643; font-size: 12px; }
-.eyebrow { margin-bottom: 8px; color: #237a55; font-size: 10px; font-weight: 700; letter-spacing: .14em; }
-.admin-link-card { margin-top: 28px; padding: 22px; border: 1px solid #e2e8e4; border-radius: 12px; background: #fff; }
-.admin-link-card h2 { margin-bottom: 8px; }
-.admin-link-card p { margin-bottom: 12px; }
-.admin-link-card a, .catalog-back { color: #237a55; font-weight: 700; font-size: 13px; }
-.catalog-admin header { margin: 24px 0; }
-.catalog-total { padding: 8px 12px; border: 1px solid #e2e8e4; border-radius: 8px; color: #475569; font-size: 12px; }
-.catalog-admin-section { margin: 22px 0; padding: 24px; border: 1px solid #e2e8e4; border-radius: 12px; background: #fff; }
-.catalog-admin-section h2 { margin-bottom: 18px; font-size: 16px; }
-.catalog-edit-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.catalog-edit-form label { display: grid; gap: 6px; color: #475569; font-size: 12px; font-weight: 600; }
-.catalog-edit-form input, .catalog-edit-form select { min-height: 40px; padding: 0 10px; border: 1px solid #dce4df; border-radius: 7px; background: #fff; color: #162b24; }
-.catalog-edit-form .catalog-checkbox { display: flex; align-items: center; }
-.catalog-edit-form .catalog-checkbox input { min-height: auto; }
-.catalog-edit-form button { min-height: 42px; border: 0; border-radius: 8px; background: #237a55; color: #fff; cursor: pointer; font-weight: 700; }
-.managed-list { display: grid; gap: 10px; }
-.managed-item { display: flex; align-items: center; gap: 20px; padding: 14px; border: 1px solid #e7ece8; border-radius: 9px; }
-.managed-item--inactive { opacity: .62; }
-.managed-item-main { display: flex; flex: 1; align-items: center; gap: 12px; }
-.managed-item-emoji { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 9px; background: #eef6f0; font-size: 20px; }
-.managed-item h3 { margin: 0 0 4px; font-size: 13px; }
-.managed-item p { margin: 0; font-size: 11px; }
-.managed-item-cost { display: grid; gap: 3px; color: #718078; font-size: 10px; }
-.managed-item-cost strong { color: #162b24; font-size: 12px; }
-.catalog-toggle { padding: 8px 10px; border: 1px solid #dce4df; border-radius: 7px; background: #fff; color: #385248; cursor: pointer; font-size: 11px; font-weight: 700; }
-.catalog-feedback { padding: 12px; border-radius: 8px; background: #eef8f0; color: #236643; font-size: 13px; }
-.catalog-feedback--error { background: #fff4ef; color: #a3372f; }
-@media (max-width: 680px) { .catalog-edit-form { grid-template-columns: 1fr; } .managed-item { flex-wrap: wrap; } }
+@import "tailwindcss";
+@source "../../../../packages/ui/src";
+
+@theme {
+  --color-brand: #0b5a3c;
+  --color-brand-dark: #07412c;
+  --color-brand-light: #2f9a63;
+  --color-mint: #eaf4ee;
+  --color-sun: #f6b53b;
+  --color-sun-dark: #e29a12;
+  --color-cream: #fff7e3;
+  --color-ink: #12261c;
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-hand: var(--font-caveat), "Segoe Script", "Bradley Hand", cursive;
+}
+
+body {
+  background: #fff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+.pattern-strip {
+  background-image: url("/pattern.svg");
+  background-size: 40px 40px;
+  background-repeat: repeat;
+}
+
+@layer components {
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-green { @apply bg-brand text-white hover:bg-brand-dark; }
+  .btn-yellow { @apply bg-sun text-ink hover:bg-sun-dark; }
+  .btn-outline { @apply border border-brand/30 bg-white text-brand hover:bg-mint; }
+  .btn-danger { @apply bg-red-600 text-white hover:bg-red-700; }
+  .btn-sm { @apply px-3.5 py-1.5 text-xs; }
+  .input { @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20; }
+  .label { @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600; }
+  .card { @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm; }
+  .tbl { @apply w-full text-left text-sm; }
+  .tbl th { @apply whitespace-nowrap border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500; }
+  .tbl td { @apply border-b border-slate-100 px-3 py-2.5 align-top; }
+  .tbl tr:hover td { @apply bg-mint/40; }
+  .badge { @apply inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .badge-green { @apply bg-emerald-100 text-emerald-800; }
+  .badge-red { @apply bg-red-100 text-red-700; }
+  .badge-amber { @apply bg-amber-100 text-amber-800; }
+  .badge-blue { @apply bg-sky-100 text-sky-800; }
+  .badge-indigo { @apply bg-indigo-100 text-indigo-800; }
+  .badge-slate { @apply bg-slate-100 text-slate-700; }
+  .h-title { @apply text-2xl font-bold text-brand-dark; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+}

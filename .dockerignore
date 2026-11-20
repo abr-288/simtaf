@@ -1,0 +1,10 @@
+**/node_modules
+**/.next
+**/.turbo
+**/tsconfig.tsbuildinfo
+.git
+.idea
+.env
+backend
+apps/mobile
+sample

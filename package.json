@@ -9,7 +9,9 @@
     "typecheck": "turbo typecheck",
     "format": "prettier --write \"**/*.{md,json,yml,yaml,ts,tsx,js,mjs}\"",
     "format:check": "prettier --check \"**/*.{md,json,yml,yaml,ts,tsx,js,mjs}\"",
-    "clean": "turbo clean && rm -rf node_modules"
+    "clean": "turbo clean && rm -rf node_modules",
+    "contract": "node scripts/contract.mjs",
+    "contract:check": "node scripts/contract.mjs --check"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
