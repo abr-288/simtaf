@@ -46,7 +46,9 @@ test('un donateur s’inscrit, fait un don et l’administration l’accepte', a
   await admin.goto(ADMIN + `/admin/demandes?q=${ref}`);
   await admin.getByRole('link', { name: /×/ }).first().click();
   await admin.getByRole('button', { name: 'Accepter la demande' }).click();
-  await expect(admin.getByText('Décision enregistrée et notifiée au donateur.')).toBeVisible();
+  // Le formulaire de décision disparaît une fois la demande acceptée : on vérifie le suivi.
+  await expect(admin.getByRole('region', { name: 'Suivi de la demande' }).getByRole('listitem').filter({ hasText: 'Acceptée' }))
+    .toContainText('étape actuelle');
 
   // 4. Le donateur voit la décision et la notification
   await donor.reload();

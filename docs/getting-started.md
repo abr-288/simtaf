@@ -21,3 +21,15 @@ Après le premier démarrage du backend (migrations Flyway), exécutez dans l’
 ## Mobile
 
 Dans `apps/mobile`, exécutez `flutter pub get` puis `flutter run`. La configuration d’URL API est centralisée dans `lib/core/config/app_config.dart` (surcharge : `--dart-define=API_BASE_URL=...`). Le texte en clair (HTTP) n’est autorisé que dans le manifeste Android de debug.
+
+## Tests
+
+| Partie | Commande | Remarque |
+|---|---|---|
+| Backend | `cd backend && ./gradlew test` | PostgreSQL 16 embarqué, aucune base à démarrer ; exporte le contrat dans `docs/api/` |
+| Contrat | `pnpm contract` (ou `pnpm contract:check` en CI) | Régénère types TS, libellés et modèles Dart, vérifie les 149 appels clients |
+| Web | `pnpm typecheck`, `pnpm lint`, `pnpm build` | |
+| Mobile | `cd apps/mobile && flutter analyze && flutter test` | Les modèles `lib/core/api.g.dart` sont générés : ne pas les modifier |
+| Bout en bout | `cd e2e && pnpm install-browsers && DEMO_PASSWORD=… pnpm test` | Vise la zone de dev par défaut (`SAAS_URL`, `ADMIN_URL` pour une autre cible). Crée un donateur `+22899…` et une demande acceptée |
+
+La CI GitHub Actions (`.github/workflows/ci.yml`) exécute les jobs backend, web et mobile à chaque push ; les tests de bout en bout se lancent à la main (« Run workflow », case *e2e*), avec la variable `E2E_SAAS_URL`/`E2E_ADMIN_URL` et le secret `E2E_DEMO_PASSWORD` définis dans le dépôt.

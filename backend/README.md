@@ -24,4 +24,12 @@ La configuration locale est dans `src/main/resources/application.yml`; les secre
 
 `platform` (audit, notifications, paramètres, contact), `rewards` (Token Mena, badges, avis), `providers`, `giving` (demandes, missions, preuves, paiements, litiges, bénéficiaires, statistiques) et `community` (services communautaires, publications partenaires). Voir [docs/architecture.md](../docs/architecture.md) et l’ADR [0001](../docs/adr/0001-reprise-naya-modules-et-acces-donnees.md). Les fichiers sont stockés dans `STORAGE_DIR` (défaut `./storage`). Reprise des données : `scripts/import-legacy-operations.sql` après les scripts d’identité et de catalogue.
 
-Tests : `./gradlew test` exécute la vérification des frontières Modulith, l'export du contrat et `GivingFlowTests`, qui parcourt un don de bout en bout sur H2 (mode PostgreSQL).
+Tests : `./gradlew test` (39 tests) tourne sur un **vrai PostgreSQL 16 embarqué** (zonky, lancé par `ApiTestBase`), sans Docker ni base à installer :
+
+- `ModularityTests` : frontières entre modules (Spring Modulith) ;
+- `AuthorizationTests` : chaque route d'administration contre anonyme, membre, administrateur secondaire sans ou avec la bonne permission, administrateur principal ; propriété des demandes, paiements, litiges, missions et preuves ; rôles réservés ; révocation de session ;
+- `BusinessRulesTests` : OTP (limites, tentatives), transitions de dons, montants recalculés côté serveur, idempotence, missions et preuves, Mena (plafond, doublons, ajustements), services et campagnes ;
+- `GivingFlowTests`, `CatalogApiTests` : parcours complets ;
+- `ContractExportTests` : export du contrat dans `docs/api/` (LF) et unicité des noms de records.
+
+`src/test/resources/application.yml` remplace celui de production pendant les tests : tout réglage nécessaire aux tests doit y être repris.

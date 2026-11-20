@@ -37,7 +37,7 @@ pnpm dev
 
 Les commandes pnpm pilotent les deux applications Next.js. Démarrez le backend dans un autre terminal avec `cd backend && ./gradlew bootRun`, et le mobile avec `cd apps/mobile && flutter run`. Pour compiler l’ensemble : `pnpm build`, `cd backend && ./gradlew build`, puis `cd apps/mobile && flutter analyze && flutter build apk --debug`.
 
-Après toute modification d’un endpoint ou d’un libellé côté backend : `cd backend && ./gradlew test` (exporte le contrat dans `docs/api/`), puis `pnpm contract` (régénère les types et libellés des clients et vérifie leurs appels).
+Après toute modification d’un endpoint ou d’un libellé côté backend : `cd backend && ./gradlew test` (exporte le contrat dans `docs/api/`), puis `pnpm contract` (régénère les types, libellés et modèles Dart des clients et vérifie leurs appels). Tests : voir [docs/getting-started.md](docs/getting-started.md#tests).
 
 Consultez [docs/getting-started.md](docs/getting-started.md) pour les détails, notamment l’installation Flutter et le démarrage de PostgreSQL.
 
