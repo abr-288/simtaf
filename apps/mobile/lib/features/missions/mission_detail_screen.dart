@@ -38,7 +38,7 @@ class MissionDetailScreen extends ConsumerWidget {
                 Text('Don concerné : ${r['title']}'),
                 Text('Cible / zone : ${r['targetName'] ?? '—'}${r['targetZone'] != null ? ' · ${r['targetZone']}' : ''}'),
                 Text('Rémunération : ${m.exchange ? 'Échange de services' : fcfa(m.providerFee)}', style: const TextStyle(fontWeight: FontWeight.bold, color: brand)),
-                if (m.json['instructions'] != null) ...[const SizedBox(height: 8), Text(asStr(m.json['instructions'])!)],
+                if (m.instructions != null) ...[const SizedBox(height: 8), Text(m.instructions!)],
                 const SizedBox(height: 8),
                 ...asList(d['items']).map((i) => Text('• ${i['quantity']} × ${i['label']}${i['target'] != null ? ' — ${i['target']}' : ''}')),
                 const SizedBox(height: 8),
@@ -50,7 +50,7 @@ class MissionDetailScreen extends ConsumerWidget {
                   )
                 else if (m.status == 'proposed')
                   const Text('Les coordonnées du bénéficiaire sont communiquées après acceptation de la mission.', style: TextStyle(fontSize: 12, color: Colors.black54)),
-                if (m.json['refusalReason'] != null) Text('Motif de refus : ${m.json['refusalReason']}', style: const TextStyle(color: Colors.red)),
+                if (m.refusalReason != null) Text('Motif de refus : ${m.refusalReason}', style: const TextStyle(color: Colors.red)),
               ]),
             ),
             SectionCard(

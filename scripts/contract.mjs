@@ -3,6 +3,7 @@
 //   1. types TypeScript des réponses        → packages/shared-types/src/openapi.generated.ts
 //   2. référentiel des libellés (web)        → packages/ui/src/reference.generated.ts
 //   3. référentiel des libellés (mobile)     → apps/mobile/lib/core/reference.g.dart
+//   3b. modèles Dart typés des réponses     → apps/mobile/lib/core/api.g.dart
 //   4. contrôle : chaque appel des clients TypeScript et Dart (chemin + méthode) existe dans le contrat.
 // Usage : pnpm contract            (génère puis contrôle)
 //         pnpm contract --check    (contrôle seulement, échoue si un fichier généré n'est pas à jour — CI)
@@ -52,6 +53,57 @@ emit('apps/mobile/lib/core/reference.g.dart',
   `/// Libellés des codes métier (catégories, rôles, moyens de paiement…).\n` +
   `const referenceLabels = <String, Map<String, String>>{\n${dartLabels}\n};\n\n` +
   `const selfRegisterRoles = <String>[${reference.selfRegisterRoles.map(dart).join(', ')}];\n`);
+
+/* 3 bis. Modèles Dart typés (un par schéma OpenAPI, préfixe `Api` pour éviter les conflits avec Flutter).
+   Lecture tolérante : un champ absent prend une valeur neutre (0, '', false, []) s'il est obligatoire, null sinon.
+   Un champ renommé ou supprimé côté backend fait échouer `flutter analyze` partout où le mobile l'utilise. */
+const schemas = openapi.components.schemas;
+const refName = (ref) => 'Api' + ref.split('/').pop();
+/** Retourne [type Dart, conversion de l'expression `v`]. */
+function dartConv(ps, v) {
+  const nullable = !!ps.nullable;
+  const ref = ps.$ref ?? (ps.allOf?.length === 1 ? ps.allOf[0].$ref : null);
+  const opt = (t, code, nullCode) => (nullable ? [`${t}?`, nullCode] : [t, code]);
+  if (ref) return opt(refName(ref), `${refName(ref)}.fromJson(_map(${v}))`, `${v} is Map ? ${refName(ref)}.fromJson(_map(${v})) : null`);
+  switch (ps.type) {
+    case 'integer': return opt('int', `_int(${v})`, `${v} == null ? null : _int(${v})`);
+    case 'number': return opt('double', `_dbl(${v})`, `${v} == null ? null : _dbl(${v})`);
+    case 'boolean': return opt('bool', `${v} == true`, `${v} == null ? null : ${v} == true`);
+    case 'string': return opt('String', `_str(${v})`, `${v}?.toString()`);
+    case 'array': {
+      const [t, code] = dartConv({ ...ps.items, nullable: false }, 'e');
+      return opt(`List<${t}>`, `_list(${v}, (e) => ${code})`, `${v} is List ? _list(${v}, (e) => ${code}) : null`);
+    }
+    case 'object': {
+      if (ps.additionalProperties && typeof ps.additionalProperties === 'object') {
+        const [t, code] = dartConv({ ...ps.additionalProperties, nullable: false }, 'e');
+        return opt(`Map<String, ${t}>`, `_map(${v}).map((k, e) => MapEntry(k, ${code}))`,
+          `${v} is Map ? _map(${v}).map((k, e) => MapEntry(k, ${code})) : null`);
+      }
+      return opt('Map<String, dynamic>', `_map(${v})`, `${v} is Map ? _map(${v}) : null`);
+    }
+    default: return ['Object?', v];
+  }
+}
+const dartModels = Object.entries(schemas).sort(([a], [b]) => a.localeCompare(b)).map(([name, schema]) => {
+  const props = Object.entries(schema.properties ?? {});
+  const cls = 'Api' + name;
+  const fields = props.map(([p, ps]) => { const [t, code] = dartConv(ps, `j['${p}']`); return { p, t, code, desc: ps.description }; });
+  if (!fields.length) return `class ${cls} {\n  const ${cls}();\n  factory ${cls}.fromJson(Map<String, dynamic> _) => const ${cls}();\n}\n`;
+  return `class ${cls} {\n` +
+    `  const ${cls}({${fields.map((f) => `${f.t.endsWith('?') ? '' : 'required '}this.${f.p}`).join(', ')}});\n\n` +
+    `  factory ${cls}.fromJson(Map<String, dynamic> j) => ${cls}(\n${fields.map((f) => `        ${f.p}: ${f.code},`).join('\n')}\n      );\n\n` +
+    fields.map((f) => `${f.desc ? `  /// ${f.desc.replace(/\n/g, ' ')}\n` : ''}  final ${f.t} ${f.p};`).join('\n') + '\n}\n';
+}).join('\n');
+emit('apps/mobile/lib/core/api.g.dart',
+  `// Généré par scripts/contract.mjs depuis docs/api/openapi.json — ne pas modifier à la main.\n` +
+  `// ignore_for_file: type=lint, unused_element\n\n` +
+  `int _int(Object? v) => v is num ? v.toInt() : int.tryParse('$v') ?? 0;\n` +
+  `double _dbl(Object? v) => v is num ? v.toDouble() : double.tryParse('$v') ?? 0;\n` +
+  `String _str(Object? v) => v?.toString() ?? '';\n` +
+  `Map<String, dynamic> _map(Object? v) => v is Map ? Map<String, dynamic>.from(v) : <String, dynamic>{};\n` +
+  `List<T> _list<T>(Object? v, T Function(Object? e) f) => v is List ? v.map(f).toList() : <T>[];\n\n` +
+  dartModels);
 
 /* 4. Contrôle des appels clients */
 const contract = new Set();

@@ -1,4 +1,7 @@
-/// Modèles des réponses de l'API (champs utilisés par l'application mobile).
+// Modèles utilisés par les écrans, construits sur les modèles typés générés depuis le contrat (`api.g.dart`).
+// Un champ renommé ou supprimé côté API fait échouer `flutter analyze` ici, pas à l'exécution.
+import 'api.g.dart';
+
 typedef Json = Map<String, dynamic>;
 
 int asInt(dynamic v) => v is num ? v.toInt() : int.tryParse('$v') ?? 0;
@@ -10,19 +13,20 @@ class AppUser {
       this.bio, this.notifInapp = true, this.notifSms = true, this.notifEmail = false});
 
   factory AppUser.fromJson(Json j) {
-    final prefs = j['notifPrefs'] is Map ? Json.from(j['notifPrefs'] as Map) : const <String, dynamic>{};
+    final u = ApiIdentityUserResponse.fromJson(j);
+    final prefs = u.notifPrefs;
     return AppUser(
-      id: asInt(j['id']),
-      phone: asStr(j['phone']) ?? '',
-      name: asStr(j['name']) ?? '',
-      role: asStr(j['role']) ?? 'donor',
-      email: asStr(j['email']),
-      zone: asStr(j['zone']),
-      organization: asStr(j['organization']),
-      bio: asStr(j['bio']),
-      notifInapp: prefs['inapp'] != false,
-      notifSms: prefs['sms'] != false,
-      notifEmail: prefs['email'] == true,
+      id: u.id ?? 0,
+      phone: u.phone ?? '',
+      name: u.name ?? '',
+      role: u.role ?? 'donor',
+      email: u.email,
+      zone: u.zone,
+      organization: u.organization,
+      bio: u.bio,
+      notifInapp: prefs?.inapp ?? true,
+      notifSms: prefs?.sms ?? true,
+      notifEmail: prefs?.email ?? false,
     );
   }
 
@@ -46,8 +50,10 @@ class AppUser {
 class CatalogItem {
   CatalogItem(this.id, this.title, this.category, this.description, this.unitPrice, this.unit, this.emoji);
 
-  factory CatalogItem.fromJson(Json j) => CatalogItem(asInt(j['id']), asStr(j['title']) ?? '', asStr(j['category']) ?? 'autre',
-      asStr(j['description']), asInt(j['unitPrice']), asStr(j['unit']) ?? 'unité', asStr(j['emoji']) ?? '🎁');
+  factory CatalogItem.fromJson(Json j) {
+    final i = ApiCatalogItemResponse.fromJson(j);
+    return CatalogItem(i.id ?? 0, i.title ?? '', i.category ?? 'autre', i.description, i.unitPrice, i.unit ?? 'unité', i.emoji ?? '🎁');
+  }
 
   final int id;
   final String title;
@@ -59,40 +65,42 @@ class CatalogItem {
 }
 
 class GiftRequest {
-  GiftRequest(this.json);
+  GiftRequest(Json json) : row = ApiRequestRow.fromJson(json);
 
-  final Json json;
-  int get id => asInt(json['id']);
-  String get ref => asStr(json['ref']) ?? '';
-  String get title => asStr(json['title']) ?? '';
-  String get status => asStr(json['status']) ?? '';
-  String get kind => asStr(json['kind']) ?? '';
-  int get totalAmount => asInt(json['totalAmount']);
-  String? get createdAt => asStr(json['createdAt']);
+  final ApiRequestRow row;
+  int get id => row.id ?? 0;
+  String get ref => row.ref ?? '';
+  String get title => row.title ?? '';
+  String get status => row.status ?? '';
+  String get kind => row.kind ?? '';
+  int get totalAmount => row.totalAmount;
+  String? get createdAt => row.createdAt;
 }
 
 class Mission {
-  Mission(this.json);
+  Mission(Json json) : row = ApiMissionRow.fromJson(json);
 
-  final Json json;
-  int get id => asInt(json['id']);
-  String get title => asStr(json['title']) ?? '';
-  String get status => asStr(json['status']) ?? '';
-  String? get dueDate => asStr(json['dueDate']);
-  int get providerFee => asInt(json['providerFee']);
-  bool get exchange => json['compensationMode'] == 'exchange';
-  bool get late => json['late'] == true;
-  bool get validated => json['validatedAt'] != null;
+  final ApiMissionRow row;
+  int get id => row.id ?? 0;
+  String get title => row.title ?? '';
+  String get status => row.status ?? '';
+  String? get dueDate => row.dueDate;
+  int get providerFee => row.providerFee;
+  bool get exchange => row.compensationMode == 'exchange';
+  bool get late => row.late;
+  bool get validated => row.validatedAt != null;
+  String? get instructions => row.instructions;
+  String? get refusalReason => row.refusalReason;
 }
 
 class AppNotification {
-  AppNotification(this.json);
+  AppNotification(Json json) : row = ApiNotificationView.fromJson(json);
 
-  final Json json;
-  int get id => asInt(json['id']);
-  String get title => asStr(json['title']) ?? '';
-  String? get body => asStr(json['body']);
-  String? get link => asStr(json['link']);
-  bool get read => json['readAt'] != null;
-  String? get createdAt => asStr(json['createdAt']);
+  final ApiNotificationView row;
+  int get id => row.id ?? 0;
+  String get title => row.title ?? '';
+  String? get body => row.body;
+  String? get link => row.link;
+  bool get read => row.readAt != null;
+  String? get createdAt => row.createdAt;
 }
