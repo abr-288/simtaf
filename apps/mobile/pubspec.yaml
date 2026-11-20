@@ -1,7 +1,7 @@
 name: menewa_mobile
-description: Application mobile Menewa
+description: Application mobile Menewa Naya (donateurs, clients, prestataires, partenaires, bénéficiaires).
 publish_to: none
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   http: ^1.2.2
   flutter_riverpod: ^2.6.1
+  flutter_secure_storage: ^9.2.2
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

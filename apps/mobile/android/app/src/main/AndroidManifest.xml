@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Appels à l'API Menewa (HTTPS en production). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="menewa_mobile"
+        android:label="Menewa Naya"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

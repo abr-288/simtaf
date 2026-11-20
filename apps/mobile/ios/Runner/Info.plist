@@ -7,7 +7,11 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Menewa Mobile</string>
+	<string>Menewa Naya</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Prendre en photo une preuve de remise (mission prestataire).</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Joindre une photo existante comme preuve de remise.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
