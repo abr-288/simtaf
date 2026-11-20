@@ -3,39 +3,28 @@ package com.menewa.giving;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
+import com.menewa.ApiTestBase;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 
-@SpringBootTest(properties = "menewa.identity.bootstrap-admin-phone=+22890009001")
-@AutoConfigureMockMvc
-class GivingFlowTests {
+class GivingFlowTests extends ApiTestBase {
     private static final byte[] PNG = {(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0};
-
-    @Autowired MockMvc mvc;
-    @Autowired ObjectMapper json;
 
     @Test
     void donationLifecycleFromCartToClosureAwardsTokens() throws Exception {
-        String admin = login("+22890009001", null, null);
+        String admin = admin();
         long itemId = body(postJson("/api/v1/admin/catalog", admin, Map.of("title", "Pack test", "category", "nourriture", "description", "Pack",
                 "unitPrice", 15000, "costEstimate", 12000, "unit", "pack", "emoji", "🍚", "active", true)).andExpect(status().isCreated())).get("id").asLong();
 
-        String donor = login(phone(), "Donateur Test", "donor");
-        String provider = login(phone(), "Prestataire Test", "provider");
-        long providerId = body(mvc.perform(get("/api/auth/me").header("Authorization", "Bearer " + provider))).get("id").asLong();
+        String donor = register("donor").token();
+        Account providerAccount = register("provider");
+        String provider = providerAccount.token();
+        long providerId = providerAccount.id();
 
         // Le donateur ne peut pas accéder à l'administration.
         mvc.perform(get("/api/v1/admin/requests").header("Authorization", "Bearer " + donor)).andExpect(status().isForbidden());
@@ -99,26 +88,4 @@ class GivingFlowTests {
         mvc.perform(get("/api/v1/admin/audit").header("Authorization", "Bearer " + admin)).andExpect(status().isOk());
     }
 
-    private ResultActions postJson(String url, String token, Object payload) throws Exception {
-        return mvc.perform(post(url).header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
-                .content(json.writeValueAsString(payload)));
-    }
-
-    private JsonNode body(ResultActions result) throws Exception {
-        return json.readTree(result.andReturn().getResponse().getContentAsString());
-    }
-
-    private static String phone() {
-        return "+228" + String.format("%08d", Math.floorMod(System.nanoTime(), 100_000_000));
-    }
-
-    private String login(String phone, String name, String role) throws Exception {
-        Map<String, Object> request = name == null ? Map.of("phone", phone, "mode", "login")
-                : Map.of("phone", phone, "mode", "register", "name", name, "role", role);
-        JsonNode otp = body(mvc.perform(post("/api/auth/otp/request").contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(request)))
-                .andExpect(status().isOk()));
-        JsonNode session = body(mvc.perform(post("/api/auth/otp/verify").contentType(MediaType.APPLICATION_JSON)
-                .content(json.writeValueAsString(Map.of("phone", phone, "code", otp.get("devCode").asText())))).andExpect(status().isOk()));
-        return session.get("accessToken").asText();
-    }
 }

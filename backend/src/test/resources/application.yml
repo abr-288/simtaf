@@ -1,9 +1,14 @@
 spring:
-  datasource:
-    url: jdbc:h2:mem:menewa;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+  # Ce fichier remplace application.yml de production : reprendre ici les réglages nécessaires.
+  modulith:
+    events:
+      jdbc:
+        schema-initialization:
+          enabled: true
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 10MB
   jpa:
     hibernate:
       ddl-auto: validate

@@ -26,7 +26,9 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.modulith:spring-modulith-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testRuntimeOnly("com.h2database:h2")
+    // Vrai PostgreSQL 16 pour les tests, sans Docker (binaires embarqués, Windows/Linux/macOS).
+    testImplementation("io.zonky.test:embedded-postgres:2.1.0")
+    testImplementation(platform("io.zonky.test.postgres:embedded-postgres-binaries-bom:16.4.0"))
 }
 
 dependencyManagement {

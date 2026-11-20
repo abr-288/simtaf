@@ -4,3 +4,8 @@ gradlew    text eol=lf
 Dockerfile text eol=lf
 *.Dockerfile text eol=lf
 Caddyfile* text eol=lf
+
+# Contrat et fichiers générés : identiques sous Windows et en CI.
+docs/api/*.json text eol=lf
+*.g.dart   text eol=lf
+*.generated.ts text eol=lf
