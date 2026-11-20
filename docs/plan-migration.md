@@ -291,3 +291,24 @@ Chaque branche porte son code, ses migrations, ses contrats et sa documentation 
 6. **Bascule :** réconciliation finale, migration fichiers, répétition de restauration, bascule progressive, suivi et retrait de Drizzle legacy.
 
 La durée et le périmètre de chaque jalon doivent être estimés après F0. Le planning de huit semaines présent dans `sample/docs/Planning-Gantt-8-semaines-Menewa-Naya.docx` est un support initial, pas une estimation validée de cette migration.
+
+## 11. Avancement au 20/11/2026
+
+Les écrans d’administration, l’espace membre et un parcours mobile MVP ont été repris de `sample/` (eleos-site4). Ils fonctionnent désormais uniquement via l’API : aucune lecture ni écriture Drizzle côté frontends. Les décisions de découpage sont décrites dans l’[ADR 0001](adr/0001-reprise-naya-modules-et-acces-donnees.md).
+
+| Tranche | État | Remarques |
+|---|---|---|
+| F1 identité | Fait | Profil étendu, administration des comptes, rôles et permissions, événements d’identité. |
+| F2 catalogue | Fait | Cibles des dons déplacées dans `catalog_targets`, audit des modifications. |
+| F3–F5 dons, cycle de vie, administration | Fait | Module `giving` ; création idempotente, montants recalculés côté serveur. |
+| F6 prestataires et missions | Fait | Modules `providers` et `giving`. |
+| F7 preuves et stockage | Fait (disque) | Signature de fichier, SHA-256, proxys `/files/*`. Stockage objet privé à prévoir. |
+| F8 paiements et finances | Fait (déclaratif) | Agrégateur de paiement non branché, comme dans Naya. |
+| F9 communauté et partenaires | Fait | Module `community`. |
+| F10 litiges, tokens, notifications | Fait | Notifications synchrones in-app et SMS ; file de tâches à prévoir. |
+| F11 rôles, paramètres, audit, statistiques | Fait | Export CSV audité. |
+| F12 mobile | MVP écrit | `flutter analyze` / `flutter test` restent à exécuter (Flutter absent de l’environnement de migration). |
+| Données | Script prêt | `backend/scripts/import-legacy-operations.sql`, à répéter sur une copie avant bascule. |
+| Site public | Fait | Pages d’eleos reprises à l’identique dans le SaaS (`/`, `/social-kitchen`, `/social-network`, `/partenaires`, `/connexion`, `/inscription`…), données via `/api/v1/public/*`. Photos de l’accueil (`/images/*.jpg`) absentes, comme dans eleos. |
+
+`sample/` est conservé jusqu’à la bascule, conformément au § 6.

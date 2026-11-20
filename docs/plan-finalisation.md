@@ -1,0 +1,43 @@
+# Plan de finalisation
+
+Objectif : `backend/` porte toute la logique métier et les données ; `apps/` (admin, saas, mobile) ne contient que l’interface. Le suivi de la migration depuis Menewa Naya est dans [plan-migration.md](plan-migration.md).
+
+| Phase | Contenu | Durée estimée | État |
+|---|---|---|---|
+| 0 | Commits sur une branche, nettoyage (retrait du module `projects`) | ½ j | ✅ fait (20/11/2026) |
+| 1 | Séparation back/front : contrat OpenAPI, référentiel `/api/v1/reference`, génération et contrôle des clients, règles d’affichage déplacées dans l’API | 2–3 j | ✅ fait (20/11/2026) |
+| 2 | Qualité : tests par module et tests d’autorisation sur PostgreSQL (Testcontainers), tests de bout en bout Playwright, `flutter analyze`/`flutter test`, CI GitHub Actions | 4–5 j | à faire |
+| 3 | Fonctionnel : mobile au niveau du web (services, campagnes, publications, litiges), relances d’échéances planifiées, notifications asynchrones, renouvellement de session mobile, photos de l’accueil, choix paiement / SMS / e-mail | 5–8 j | à faire |
+| 4 | Production : domaine, OTP réel (SMS), suppression des protections de démo, limitation par IP, sauvegardes automatiques hors serveur, surveillance, stockage objet | 3–4 j | à faire |
+| 5 | Reprise des données réelles d’eleos (si elles existent) : répétition, réconciliation, bascule, suppression de `sample/` | 1–2 j | à faire |
+| 6 | Publication mobile : icônes, signature, Play Store / App Store, tests internes | 3–5 j | à faire |
+
+## Phase 1 — ce qui a été livré
+
+- **Contrat publié par le backend** : OpenAPI 3.0 sur `/v3/api-docs`, exporté dans `docs/api/openapi.json`. Champs toujours présents, `nullable` exact, noms de schémas uniques (garde-fou dans `ContractExportTests`).
+- **Référentiel unique** `GET /api/v1/reference` : statuts et tonalités, catégories, rôles, permissions, moyens de paiement, services annexes… Les libellés ne sont plus recopiés dans le web (`packages/ui`) ni dans le mobile : ils sont générés.
+- **`pnpm contract`** :
+  - génère `openapi.generated.ts`, `reference.generated.ts` et `reference.g.dart` ;
+  - vérifie les appels des clients TypeScript (114) et Dart (35) contre les 130 opérations du contrat ;
+  - `pnpm contract:check` échoue aussi si un fichier généré est périmé.
+- **Types du front vérifiés à la compilation** contre les schémas générés (`contract.check.ts`, 74 types de réponse).
+- **Plus de règle métier dans le front** : les textes d’aide des conditions de clôture d’un don sont calculés par l’API.
+- **Structure** :
+  - `backend/` : API, données, migrations, scripts de reprise ;
+  - `apps/{admin,saas,mobile}` : interfaces ;
+  - `packages/` : client, types, composants ;
+  - `deploy/` et `docs/` ;
+  - `sample/` reste jusqu’à la phase 5.
+
+### Choix assumés
+
+- **Couche serveur fine conservée dans les apps Next.js** (Server Actions, cookie `HttpOnly`, proxys de fichiers). Le jeton reste hors de portée du JavaScript du navigateur. Cette couche ne contient aucune règle métier.
+- **Types de réponse écrits à la main mais vérifiés, plutôt que remplacés par les types générés.** Les types générés déclarent « peut-être nul » tout champ Java non primitif, même un identifiant ; les remplacer ferait perdre la précision du front. La vérification à la compilation détecte malgré tout tout renommage, suppression ou changement de type côté backend.
+- **Mobile : libellés générés et appels vérifiés, mais pas de modèles Dart générés.** Le code mobile manipule le JSON via des accesseurs (`models.dart`). La génération complète des modèles Dart est à faire en phase 2, avec `flutter analyze` (Flutter absent de l’environnement actuel).
+
+## Flux de travail
+
+1. Modifier le backend (endpoint, champ, libellé).
+2. `cd backend && ./gradlew test` : tests et export du contrat.
+3. `pnpm contract` : génération, puis contrôle des appels clients.
+4. Typecheck des fronts (`tsc --noEmit` dans chaque package) : la vérification des types signale les écarts.
