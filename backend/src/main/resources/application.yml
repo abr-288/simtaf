@@ -2,13 +2,20 @@ spring:
   application:
     name: menewa-backend
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/menewa}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/menewa}
     username: ${DATABASE_USERNAME:menewa}
     password: ${DATABASE_PASSWORD:change-me}
   jpa:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+  mvc:
+    problemdetails:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 10MB
   modulith:
     events:
       jdbc:
@@ -21,7 +28,14 @@ management:
     web:
       exposure:
         include: health,info
+springdoc:
+  writer-with-order-by-keys: true
+  api-docs.version: openapi_3_0
+  api-docs:
+    path: /v3/api-docs
 menewa:
+  storage:
+    dir: ${STORAGE_DIR:./storage}
   catalog:
     seed-demo-data: ${CATALOG_SEED_DEMO_DATA:false}
   identity:

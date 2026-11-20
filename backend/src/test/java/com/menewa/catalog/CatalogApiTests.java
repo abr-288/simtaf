@@ -1,4 +1,4 @@
-package com.menewa.projects;
+package com.menewa.catalog;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -17,31 +17,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest(properties = "menewa.identity.bootstrap-admin-phone=+22890001002")
 @AutoConfigureMockMvc
-class ProjectsApiTests {
+class CatalogApiTests {
     @Autowired
     private MockMvc mvc;
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Test
-    void createsAndListsProjects() throws Exception {
-        String token = registerAndAuthenticate();
-        mvc.perform(post("/api/projects")
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"name":"Projet de démonstration","description":"Créé par le SaaS"}
-                                """))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").isNotEmpty())
-                .andExpect(jsonPath("$.name").value("Projet de démonstration"));
-
-        mvc.perform(get("/api/projects").header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Projet de démonstration"))
-                .andExpect(jsonPath("$[0].description").value("Créé par le SaaS"));
-    }
 
     @Test
     void bootstrappedAdminReceivesAdministrativePermissions() throws Exception {

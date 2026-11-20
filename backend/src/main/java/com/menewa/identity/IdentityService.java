@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ class IdentityService {
     private final OtpChallengeRepository challenges;
     private final IdentitySessionRepository sessions;
     private final OtpDelivery delivery;
+    private final ApplicationEventPublisher events;
     private final String otpSecret;
     private final boolean devMode;
     private final Duration otpTtl;
@@ -34,7 +36,7 @@ class IdentityService {
     private final int maxAttempts;
 
     IdentityService(IdentityUserRepository users, OtpChallengeRepository challenges,
-            IdentitySessionRepository sessions, OtpDelivery delivery,
+            IdentitySessionRepository sessions, OtpDelivery delivery, ApplicationEventPublisher events,
             @Value("${menewa.identity.otp.secret}") String otpSecret,
             @Value("${menewa.identity.otp.dev-mode:true}") boolean devMode,
             @Value("${menewa.identity.otp.ttl:PT5M}") Duration otpTtl,
@@ -46,6 +48,7 @@ class IdentityService {
         this.challenges = challenges;
         this.sessions = sessions;
         this.delivery = delivery;
+        this.events = events;
         this.otpSecret = otpSecret;
         this.devMode = devMode;
         this.otpTtl = otpTtl;
@@ -89,11 +92,14 @@ class IdentityService {
             throw failure(HttpStatus.UNAUTHORIZED, "otp_invalid");
         }
         challenge.consume();
-        var user = users.findByPhone(phone).orElseGet(() -> users.save(new IdentityUser(
+        var existing = users.findByPhone(phone);
+        var user = existing.orElseGet(() -> users.save(new IdentityUser(
                 phone, challenge.getRegistrationName() == null ? "" : challenge.getRegistrationName(),
                 challenge.getRegistrationRole() == null ? "donor" : challenge.getRegistrationRole())));
         if (!"active".equals(user.getStatus())) throw failure(HttpStatus.FORBIDDEN, "account_unavailable");
         user.setLastLoginAt(Instant.now());
+        if (existing.isEmpty()) events.publishEvent(new IdentityEvents.UserRegistered(user.getId(), user.getRole()));
+        events.publishEvent(new IdentityEvents.UserLoggedIn(user.getId(), user.getRole()));
         String token = newToken();
         Instant expires = Instant.now().plus(sessionTtl);
         sessions.save(new IdentitySession(sha256(token), user, expires));
@@ -108,6 +114,18 @@ class IdentityService {
             throw failure(HttpStatus.UNAUTHORIZED, "session_expired");
         return session.getUser();
     }
+
+    @Transactional
+    IdentityUser updateProfile(String authorization, ProfileUpdate update) {
+        IdentityUser user = users.findById(currentUser(authorization).getId()).orElseThrow();
+        String name = update.name() == null ? "" : update.name().trim();
+        if (name.length() < 2) throw failure(HttpStatus.BAD_REQUEST, "Nom trop court.");
+        user.updateProfile(name, blankToNull(update.email()), blankToNull(update.zone()), blankToNull(update.organization()),
+                blankToNull(update.bio()), update.notifInapp(), update.notifSms(), update.notifEmail());
+        return user;
+    }
+
+    private static String blankToNull(String value) { return value == null || value.isBlank() ? null : value.trim(); }
 
     @Transactional
     void logout(String authorization) {

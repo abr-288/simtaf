@@ -6,9 +6,17 @@ spring:
     password:
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
+  mvc:
+    problemdetails:
+      enabled: true
+springdoc:
+  writer-with-order-by-keys: true
+  api-docs.version: openapi_3_0
 menewa:
   identity:
     otp:
       dev-mode: true
       secret: test-secret-for-otp-hashing
+  storage:
+    dir: ./build/test-storage

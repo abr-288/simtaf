@@ -1,8 +1,11 @@
 package com.menewa.catalog;
 
 import com.menewa.identity.IdentityAccess;
+import com.menewa.identity.IdentityUser;
+import com.menewa.platform.Audit;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -20,10 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class CatalogController {
     private final CatalogManagement catalog;
     private final IdentityAccess identity;
+    private final Audit audit;
 
-    CatalogController(CatalogManagement catalog, IdentityAccess identity) {
+    CatalogController(CatalogManagement catalog, IdentityAccess identity, Audit audit) {
         this.catalog = catalog;
         this.identity = identity;
+        this.audit = audit;
     }
 
     @GetMapping({"/catalog", "/v1/catalog"})
@@ -39,21 +44,27 @@ public class CatalogController {
     @ResponseStatus(HttpStatus.CREATED)
     ManagedCatalogItemResponse create(@RequestHeader(value = "Authorization", required = false) String authorization,
             @Valid @RequestBody SaveCatalogItemRequest request) {
-        identity.requirePermission(authorization, "catalog.manage");
-        return catalog.create(request);
+        IdentityUser user = identity.requirePermission(authorization, "catalog.manage");
+        ManagedCatalogItemResponse created = catalog.create(request);
+        audit.record(user, "catalog.create", "catalog_item", created.id());
+        return created;
     }
 
     @PutMapping({"/admin/catalog/{id}", "/v1/admin/catalog/{id}"})
     ManagedCatalogItemResponse update(@RequestHeader(value = "Authorization", required = false) String authorization,
             @PathVariable long id, @Valid @RequestBody SaveCatalogItemRequest request) {
-        identity.requirePermission(authorization, "catalog.manage");
-        return catalog.update(id, request);
+        IdentityUser user = identity.requirePermission(authorization, "catalog.manage");
+        ManagedCatalogItemResponse updated = catalog.update(id, request);
+        audit.record(user, "catalog.update", "catalog_item", id, Map.of("price", request.unitPrice(), "cost", request.costEstimate()));
+        return updated;
     }
 
     @PatchMapping({"/admin/catalog/{id}/active", "/v1/admin/catalog/{id}/active"})
     ManagedCatalogItemResponse setActive(@RequestHeader(value = "Authorization", required = false) String authorization,
             @PathVariable long id, @RequestBody SetCatalogItemActiveRequest request) {
-        identity.requirePermission(authorization, "catalog.manage");
-        return catalog.setActive(id, request.active());
+        IdentityUser user = identity.requirePermission(authorization, "catalog.manage");
+        ManagedCatalogItemResponse updated = catalog.setActive(id, request.active());
+        audit.record(user, "catalog.toggle", "catalog_item", id, Map.of("active", request.active()));
+        return updated;
     }
 }

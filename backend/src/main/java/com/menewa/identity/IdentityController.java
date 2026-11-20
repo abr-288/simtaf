@@ -6,13 +6,14 @@ import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping({"/api/auth", "/api/v1/auth"})
 public class IdentityController {
     private final IdentityService identity;
 
@@ -31,6 +32,12 @@ public class IdentityController {
     @GetMapping("/me")
     IdentityUserResponse me(@RequestHeader(value = "Authorization", required = false) String authorization) {
         return IdentityUserResponse.from(identity.currentUser(authorization));
+    }
+
+    @PutMapping("/me")
+    IdentityUserResponse updateMe(@RequestHeader(value = "Authorization", required = false) String authorization,
+            @Valid @RequestBody ProfileUpdate update) {
+        return IdentityUserResponse.from(identity.updateProfile(authorization, update));
     }
 
     @GetMapping("/permissions")

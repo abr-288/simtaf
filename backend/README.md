@@ -6,7 +6,7 @@ API REST Java 21 avec Spring Boot 3 et Spring Modulith. Chaque domaine métier d
 
 Configurez PostgreSQL, puis lancez `./gradlew bootRun`. Vérification de santé : `GET /api/health` ou `/actuator/health`.
 
-Le premier module métier est `projects` : `GET /api/projects` liste les projets et `POST /api/projects` en crée un. Flyway initialise la table à partir de `src/main/resources/db/migration`. Le SaaS consomme ces routes via `packages/api-client`.
+Le schéma est géré exclusivement par Flyway (`src/main/resources/db/migration`). Le module de démonstration `projects` a été retiré (`V11__drop_projects.sql` ; `V1` reste dans l'historique Flyway). Le contrat est publié sur `/v3/api-docs` et exporté dans `docs/api/` par `ContractExportTests`.
 
 Le module `catalog` expose `GET /api/catalog` publiquement et les opérations `/api/admin/catalog*` aux détenteurs de `catalog.manage`. Pour reprendre les articles de Naya, après Flyway, exécutez `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/import-legacy-catalog.sql`. Le seed local (quelques tarifs de démonstration) est contrôlé par `CATALOG_SEED_DEMO_DATA=true` ; il est désactivé par défaut.
 
@@ -19,3 +19,9 @@ Les interfaces Next.js gardent le jeton dans un cookie `HttpOnly` propre à l’
 Pour une base de production existante, exécutez les migrations Flyway puis `psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/import-legacy-identity.sql` une seule fois afin de reprendre utilisateurs et permissions Drizzle. Les défis OTP et sessions actifs ne sont pas copiés : tous les utilisateurs devront se réauthentifier après bascule. Vérifiez les comptes et droits importés avant de retirer l’ancienne application.
 
 La configuration locale est dans `src/main/resources/application.yml`; les secrets et paramètres de déploiement passent par les variables d’environnement.
+
+## Modules repris de Menewa Naya
+
+`platform` (audit, notifications, paramètres, contact), `rewards` (Token Mena, badges, avis), `providers`, `giving` (demandes, missions, preuves, paiements, litiges, bénéficiaires, statistiques) et `community` (services communautaires, publications partenaires). Voir [docs/architecture.md](../docs/architecture.md) et l’ADR [0001](../docs/adr/0001-reprise-naya-modules-et-acces-donnees.md). Les fichiers sont stockés dans `STORAGE_DIR` (défaut `./storage`). Reprise des données : `scripts/import-legacy-operations.sql` après les scripts d’identité et de catalogue.
+
+Tests : `./gradlew test` exécute la vérification des frontières Modulith, l'export du contrat et `GivingFlowTests`, qui parcourt un don de bout en bout sur H2 (mode PostgreSQL).
