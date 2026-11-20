@@ -1,0 +1,17 @@
+# API Menewa pour l'application mobile — protégée par une clé d'application (en-tête X-Menewa-Key).
+# __API_HOST__ et __API_KEY__ sont remplacés par deploy.sh. Seul /api/* est relayé (pas /actuator).
+__API_HOST__ {
+	route {
+		@sansCle not header X-Menewa-Key "__API_KEY__"
+		respond @sansCle "Clé d'application requise" 401
+		reverse_proxy /api/* menewa-backend:8080
+		respond 404
+	}
+	header {
+		-Server
+		X-Robots-Tag "noindex, nofollow"
+	}
+	request_body {
+		max_size 12MB
+	}
+}

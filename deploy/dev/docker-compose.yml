@@ -1,0 +1,71 @@
+# Zone de dev Menewa sur un VPS mutualisé : les apps rejoignent le réseau Docker externe `proxy`
+# du reverse-proxy Caddy partagé (voir Caddyfile.snippet). PostgreSQL et l'API restent internes.
+# Données fictives, OTP affiché à l'écran : ne jamais y mettre de vraies données.
+name: menewa
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: menewa-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: menewa
+      POSTGRES_USER: menewa
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?définir POSTGRES_PASSWORD}
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U menewa -d menewa"]
+      interval: 5s
+      retries: 20
+
+  backend:
+    build: { context: ../../backend }
+    image: menewa-backend
+    container_name: menewa-backend
+    restart: unless-stopped
+    depends_on: { postgres: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/menewa
+      DATABASE_USERNAME: menewa
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      OTP_DEV_MODE: "true"
+      OTP_SECRET: ${OTP_SECRET:?définir OTP_SECRET}
+      IDENTITY_BOOTSTRAP_ADMIN_PHONE: ${ADMIN_PHONE:-+22890000001}
+      CATALOG_SEED_DEMO_DATA: "false" # démo identique à Menewa Naya : backend/scripts/seed-demo.sql
+      STORAGE_DIR: /data/storage
+      JAVA_TOOL_OPTIONS: -Xmx768m
+    volumes: [storage:/data/storage]
+    # `proxy` : API publiée pour l'application mobile (protégée par clé dans Caddyfile.api.snippet).
+    networks: [internal, proxy]
+
+  admin:
+    build: { context: ../.., dockerfile: deploy/dev/web.Dockerfile, args: { APP: admin } }
+    image: menewa-admin
+    container_name: menewa-admin
+    restart: unless-stopped
+    depends_on: [backend]
+    environment:
+      API_BASE_URL: http://backend:8080/api
+    networks: [internal, proxy]
+
+  saas:
+    build: { context: ../.., dockerfile: deploy/dev/web.Dockerfile, args: { APP: saas } }
+    image: menewa-saas
+    container_name: menewa-saas
+    restart: unless-stopped
+    depends_on: [backend]
+    environment:
+      API_BASE_URL: http://backend:8080/api
+      ADMIN_APP_URL: https://${ADMIN_HOST:?définir ADMIN_HOST}
+      DEMO_ACCOUNTS: "true"
+    networks: [internal, proxy]
+
+networks:
+  internal:
+  proxy:
+    external: true
+
+volumes:
+  postgres-data:
+  storage:

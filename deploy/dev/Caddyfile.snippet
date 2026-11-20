@@ -1,0 +1,29 @@
+# Menewa (zone de dev) — à ajouter au Caddyfile partagé (/srv/proxy/Caddyfile).
+# __SAAS_HOST__, __ADMIN_HOST__ et __HASH__ sont remplacés par deploy.sh (hash bcrypt du mot de passe d'accès).
+__SAAS_HOST__ {
+	basic_auth {
+		menewa __HASH__
+	}
+	header {
+		-Server
+		X-Robots-Tag "noindex, nofollow"
+	}
+	request_body {
+		max_size 12MB
+	}
+	reverse_proxy menewa-saas:3000
+}
+
+__ADMIN_HOST__ {
+	basic_auth {
+		menewa __HASH__
+	}
+	header {
+		-Server
+		X-Robots-Tag "noindex, nofollow"
+	}
+	request_body {
+		max_size 12MB
+	}
+	reverse_proxy menewa-admin:3001
+}
