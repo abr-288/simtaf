@@ -1,0 +1,6 @@
+# Scripts exécutés sous Linux (serveur, conteneurs) : toujours en LF, même extraits sous Windows.
+*.sh       text eol=lf
+gradlew    text eol=lf
+Dockerfile text eol=lf
+*.Dockerfile text eol=lf
+Caddyfile* text eol=lf
