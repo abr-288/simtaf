@@ -3128,7 +3128,7 @@ export interface components {
         };
         SmsOverview: {
             recent: components["schemas"]["SmsRow"][];
-            summary: components["schemas"]["Summary"] | null;
+            summary: components["schemas"]["SmsSummary"] | null;
         };
         SmsRow: {
             /** Format: int32 */
@@ -3146,6 +3146,14 @@ export interface components {
             sentAt: string | null;
             status: string | null;
         };
+        SmsSummary: {
+            /** Format: int64 */
+            failed: number;
+            /** Format: int64 */
+            pending: number;
+            /** Format: int64 */
+            sent: number;
+        };
         StatRow: {
             late: boolean;
             providers: string | null;
@@ -3158,14 +3166,6 @@ export interface components {
         Status: {
             label: string | null;
             tone: string | null;
-        };
-        Summary: {
-            /** Format: int64 */
-            failed: number;
-            /** Format: int64 */
-            pending: number;
-            /** Format: int64 */
-            sent: number;
         };
         Support: {
             /** Format: int32 */

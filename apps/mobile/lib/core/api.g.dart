@@ -2327,11 +2327,11 @@ class ApiSmsOverview {
 
   factory ApiSmsOverview.fromJson(Map<String, dynamic> j) => ApiSmsOverview(
         recent: _list(j['recent'], (e) => ApiSmsRow.fromJson(_map(e))),
-        summary: j['summary'] is Map ? ApiSummary.fromJson(_map(j['summary'])) : null,
+        summary: j['summary'] is Map ? ApiSmsSummary.fromJson(_map(j['summary'])) : null,
       );
 
   final List<ApiSmsRow> recent;
-  final ApiSummary? summary;
+  final ApiSmsSummary? summary;
 }
 
 class ApiSmsRow {
@@ -2358,6 +2358,20 @@ class ApiSmsRow {
   final String? phone;
   final String? sentAt;
   final String? status;
+}
+
+class ApiSmsSummary {
+  const ApiSmsSummary({required this.failed, required this.pending, required this.sent});
+
+  factory ApiSmsSummary.fromJson(Map<String, dynamic> j) => ApiSmsSummary(
+        failed: _int(j['failed']),
+        pending: _int(j['pending']),
+        sent: _int(j['sent']),
+      );
+
+  final int failed;
+  final int pending;
+  final int sent;
 }
 
 class ApiStatRow {
@@ -2396,20 +2410,6 @@ class ApiStatus {
 
   final String? label;
   final String? tone;
-}
-
-class ApiSummary {
-  const ApiSummary({required this.failed, required this.pending, required this.sent});
-
-  factory ApiSummary.fromJson(Map<String, dynamic> j) => ApiSummary(
-        failed: _int(j['failed']),
-        pending: _int(j['pending']),
-        sent: _int(j['sent']),
-      );
-
-  final int failed;
-  final int pending;
-  final int sent;
 }
 
 class ApiSupport {

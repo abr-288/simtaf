@@ -216,3 +216,10 @@ Future<String?> promptText(BuildContext context, {required String title, String?
     ),
   );
 }
+
+/// Carte de section dont le contenu est une colonne d'éléments alignés à gauche.
+Widget section(String title, List<Widget> children, {Widget? trailing}) => SectionCard(
+      title: title,
+      trailing: trailing,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
+    );

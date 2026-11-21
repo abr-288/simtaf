@@ -5,7 +5,7 @@ import type {
   CreateServiceOrderInput, CustomRequestInput, DisputeDetail, DonorDashboard, DonorRequestDetail, Finances, GiftRequest, HealthStatus,
   IdentityUser, ListingView, ManagedCatalogItem, Mission, MyProvider, MyRewards, Ok, OtpRequestInput, OtpRequestResult, PartnerDashboard,
   Payment, ProfileUpdate, PublicListing, PublicPartner, ProviderCard, ProviderDashboard, ProviderMissionDetail, ProviderOption, PublicSettings, ReceivedGift,
-  RewardAccount, RewardsOverview, SaveCatalogItemInput, ServiceOrderDetail, ServiceOrderView, Setting, StatFilters, Stats, Target,
+  RewardAccount, RewardsOverview, SmsOverview, SaveCatalogItemInput, ServiceOrderDetail, ServiceOrderView, Setting, StatFilters, Stats, Target,
   TargetUsage, UserOption,
 } from '@menewa/shared-types';
 
@@ -110,6 +110,7 @@ export const getTargetUsage = (token: string) => request<TargetUsage[]>('/v1/adm
 
 /* ───────── Plateforme ───────── */
 export const getNotifications = (token: string, limit = 100) => request<AppNotification[]>(`/v1/notifications?limit=${limit}`, { token });
+export const getSmsOverview = (token: string) => request<SmsOverview>('/v1/admin/sms', { token });
 export const getUnreadCount = (token: string) => request<{ count: number }>('/v1/notifications/unread-count', { token });
 export const markNotificationsRead = (token: string) => request<{ ok: boolean }>('/v1/notifications/read-all', { token, method: 'POST' });
 export const getPublicSettings = () => request<PublicSettings>('/v1/settings/public');

@@ -55,6 +55,9 @@ final requestStatus = _statuses('request');
 final missionStatus = _statuses('mission');
 final proofStatus = _statuses('proof');
 final paymentStatus = _statuses('payment');
+final orderStatus = _statuses('order');
+final listingStatus = _statuses('listing');
+final disputeStatus = _statuses('dispute');
 
 final categories = referenceLabels['category']!;
 final kindLabels = referenceLabels['requestKind']!;
@@ -63,6 +66,8 @@ final recurrences = referenceLabels['recurrence']!;
 final paymentModes = referenceLabels['paymentMode']!;
 final annexLabels = referenceLabels['annex']!;
 final roleLabels = referenceLabels['role']!;
+final providerCategories = referenceLabels['providerCategory']!;
+final listingTypes = referenceLabels['listingType']!;
 
 /// Moyens déclarables par un donateur (l'échange de services est réservé aux missions et services).
 final payMethods = {

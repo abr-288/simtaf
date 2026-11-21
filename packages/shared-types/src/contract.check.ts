@@ -27,6 +27,8 @@ export type ContractChecks = [
   Expect<Matches<T.Target, S['Target']>>,
   Expect<Matches<T.TargetUsage, S['TargetUsage']>>,
   Expect<Matches<T.AppNotification, S['NotificationView']>>,
+  Expect<Matches<T.SmsRow, S['SmsRow']>>,
+  Expect<Matches<T.SmsOverview['summary'], S['SmsSummary']>>,
   Expect<Matches<Omit<T.Setting, 'value'>, Omit<S['SettingView'], 'value'>>>,
   Expect<Matches<T.AuditEntry, S['AuditView']>>,
   Expect<Matches<T.ContactMessage, S['ContactView']>>,

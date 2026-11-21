@@ -39,4 +39,22 @@ void main() {
     expect(d.items.single.quantity, 2);
     expect(d.beneficiary, isNull);
   });
+
+  test('demande de service, campagne et litige se lisent avec les modèles générés', () {
+    final order = ApiOrderDetail.fromJson({
+      'iAmProvider': false,
+      'providerName': 'Kossi',
+      'order': {'id': 4, 'title': 'Réparation', 'status': 'negotiating', 'compensationMode': 'money', 'proposedPrice': 5000},
+      'messages': [
+        {'authorName': 'Kossi', 'message': {'id': 1, 'authorId': 9, 'body': 'Je propose 6000', 'price': 6000}},
+      ],
+      'payments': <Object>[],
+    });
+    expect(order.order!.proposedPrice, 5000);
+    expect(order.messages.single.message!.price, 6000);
+    final listing = ApiListingView.fromJson({'listing': {'id': 2, 'type': 'crowdfunding', 'goalAmount': 100000, 'raisedAmount': 25000}, 'confirmedContributions': 3});
+    expect(listing.listing!.raisedAmount / listing.listing!.goalAmount, 0.25);
+    final dispute = ApiDisputeDetail.fromJson({'dispute': {'id': 5, 'status': 'open', 'subject': 'Retard'}, 'messages': <Object>[]});
+    expect(dispute.dispute!.subject, 'Retard');
+  });
 }

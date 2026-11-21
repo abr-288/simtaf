@@ -67,12 +67,12 @@ class SmsOutbox {
         return batch.size();
     }
 
-    record Summary(long pending, long sent, long failed) {}
+    record SmsSummary(long pending, long sent, long failed) {}
 
-    Summary summary() {
+    SmsSummary summary() {
         return jdbc.sql("""
                 SELECT COUNT(*) FILTER (WHERE status IN ('pending', 'sending')) AS pending,
                        COUNT(*) FILTER (WHERE status = 'sent') AS sent, COUNT(*) FILTER (WHERE status = 'failed') AS failed
-                FROM platform_sms_outbox""").query(Summary.class).single();
+                FROM platform_sms_outbox""").query(SmsSummary.class).single();
     }
 }

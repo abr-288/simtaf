@@ -196,3 +196,10 @@ export type PublicListing = {
   id: number; type: string; title: string; description: string | null; zone: string | null; goalAmount: number; raisedAmount: number;
   menaSupport: number; endsAt: string | null; organization: string | null;
 };
+
+/** File d'envoi des SMS de notification (GET /api/v1/admin/sms). */
+export type SmsRow = {
+  id: number; phone: string; notificationType: string | null; status: string; attempts: number; lastError: string | null;
+  createdAt: string; sentAt: string | null; nextAttemptAt: string;
+};
+export type SmsOverview = { summary: { pending: number; sent: number; failed: number }; recent: SmsRow[] };

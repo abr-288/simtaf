@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/api.g.dart';
 import '../../core/format.dart';
 import '../../core/models.dart';
 import '../../core/session.dart';
 import '../../core/widgets.dart';
+import '../disputes/dispute_screen.dart';
 
 const _steps = ['submitted', 'accepted', 'in_progress', 'completed', 'closed'];
 const _reached = {'submitted': 0, 'info_requested': 0, 'accepted': 1, 'in_progress': 2, 'completed': 3, 'closed': 4};
@@ -100,6 +102,19 @@ class RequestDetailScreen extends ConsumerWidget {
                 child: Column(children: asList(d['installments']).map((i) => _row('#${i['seq']} · ${fdate(asStr(i['dueDate']))}',
                     '${fcfa(asInt(i['amount']))} ${i['status'] == 'done' ? '✅' : '⏳'}')).toList()),
               ),
+            if (asList(d['disputes']).isNotEmpty)
+              section('Litiges', [
+                ...asList(d['disputes']).map(ApiDisputeRow.fromJson).map((x) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(x.subject ?? ''),
+                      subtitle: Text('${x.ref ?? ''} · ${fdate(x.createdAt)}'),
+                      trailing: StatusChip(disputeStatus, x.status ?? ''),
+                      onTap: () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (_) => DisputeScreen(id: x.id ?? 0)));
+                        await reload();
+                      },
+                    )),
+              ]),
             SectionCard(
               title: 'Historique',
               child: Column(children: asList(d['history']).map((h) => ListTile(

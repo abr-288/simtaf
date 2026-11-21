@@ -42,6 +42,10 @@ class SessionGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Déconnexion (ou session révoquée) depuis un écran ouvert par-dessus : retour à l'écran de connexion.
+    ref.listen(sessionProvider, (previous, next) {
+      if (previous?.authenticated == true && !next.authenticated) Navigator.of(context).popUntil((route) => route.isFirst);
+    });
     final session = ref.watch(sessionProvider);
     if (session.loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (!session.authenticated) return const LoginScreen();

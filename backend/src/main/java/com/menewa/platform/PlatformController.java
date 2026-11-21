@@ -71,7 +71,7 @@ class PlatformController {
     /* ───────── Envois SMS (file d'envoi) ───────── */
     record SmsRow(Long id, String phone, String notificationType, String status, int attempts, String lastError,
             OffsetDateTime createdAt, OffsetDateTime sentAt, OffsetDateTime nextAttemptAt) {}
-    record SmsOverview(SmsOutbox.Summary summary, List<SmsRow> recent) {}
+    record SmsOverview(SmsOutbox.SmsSummary summary, List<SmsRow> recent) {}
 
     @GetMapping("/admin/sms")
     SmsOverview sms(@RequestHeader(value = "Authorization", required = false) String auth) {
