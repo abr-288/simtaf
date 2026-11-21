@@ -130,6 +130,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["refresh_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/catalog": {
         parameters: {
             query?: never;
@@ -898,6 +914,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/sms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["sms"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/stats": {
         parameters: {
             query?: never;
@@ -1068,6 +1100,22 @@ export interface paths {
         get: operations["permissions"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["refresh"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3078,6 +3126,26 @@ export interface components {
             updatedBy: number | null;
             value: components["schemas"]["JsonNode"] | null;
         };
+        SmsOverview: {
+            recent: components["schemas"]["SmsRow"][];
+            summary: components["schemas"]["Summary"] | null;
+        };
+        SmsRow: {
+            /** Format: int32 */
+            attempts: number;
+            /** Format: date-time */
+            createdAt: string | null;
+            /** Format: int64 */
+            id: number | null;
+            lastError: string | null;
+            /** Format: date-time */
+            nextAttemptAt: string | null;
+            notificationType: string | null;
+            phone: string | null;
+            /** Format: date-time */
+            sentAt: string | null;
+            status: string | null;
+        };
         StatRow: {
             late: boolean;
             providers: string | null;
@@ -3090,6 +3158,14 @@ export interface components {
         Status: {
             label: string | null;
             tone: string | null;
+        };
+        Summary: {
+            /** Format: int64 */
+            failed: number;
+            /** Format: int64 */
+            pending: number;
+            /** Format: int64 */
+            sent: number;
         };
         Support: {
             /** Format: int32 */
@@ -3374,6 +3450,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": string[];
+                };
+            };
+        };
+    };
+    refresh_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SessionResponse"];
                 };
             };
         };
@@ -4659,6 +4755,26 @@ export interface operations {
             };
         };
     };
+    sms: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SmsOverview"];
+                };
+            };
+        };
+    };
     stats: {
         parameters: {
             query?: {
@@ -4936,6 +5052,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": string[];
+                };
+            };
+        };
+    };
+    refresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SessionResponse"];
                 };
             };
         };

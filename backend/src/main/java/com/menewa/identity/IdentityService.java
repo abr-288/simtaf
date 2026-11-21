@@ -151,6 +151,20 @@ class IdentityService {
 
     private static String blankToNull(String value) { return value == null || value.isBlank() ? null : value.trim(); }
 
+    /**
+     * Renouvelle une session encore valide : nouveau jeton (durée pleine), l'ancien est aussitôt invalidé.
+     * Utilisé par l'application mobile pour éviter une nouvelle connexion par SMS tant qu'elle est ouverte régulièrement.
+     */
+    @Transactional
+    SessionResponse refresh(String authorization) {
+        IdentityUser user = currentUser(authorization);
+        sessions.deleteById(sha256(authorization.substring(7)));
+        String token = newToken();
+        Instant expires = Instant.now().plus(sessionTtl);
+        sessions.save(new IdentitySession(sha256(token), user, expires));
+        return new SessionResponse(token, "Bearer", expires, IdentityUserResponse.from(user));
+    }
+
     @Transactional
     void logout(String authorization) {
         if (authorization == null || !authorization.startsWith("Bearer ")) return;

@@ -32,10 +32,12 @@ class PlatformController {
     private final Audit audit;
     private final JdbcClient jdbc;
     private final IdentityDirectory directory;
+    private final SmsOutbox smsOutbox;
 
     PlatformController(IdentityAccess access, Notifications notifications, Settings settings, Audit audit, JdbcClient jdbc,
-            IdentityDirectory directory) {
+            IdentityDirectory directory, SmsOutbox smsOutbox) {
         this.directory = directory;
+        this.smsOutbox = smsOutbox;
         this.access = access;
         this.notifications = notifications;
         this.settings = settings;
@@ -65,6 +67,20 @@ class PlatformController {
     /* ───────── Paramètres ───────── */
     @GetMapping("/settings/public")
     Map<String, JsonNode> publicSettings() { return settings.publicValues(); }
+
+    /* ───────── Envois SMS (file d'envoi) ───────── */
+    record SmsRow(Long id, String phone, String notificationType, String status, int attempts, String lastError,
+            OffsetDateTime createdAt, OffsetDateTime sentAt, OffsetDateTime nextAttemptAt) {}
+    record SmsOverview(SmsOutbox.Summary summary, List<SmsRow> recent) {}
+
+    @GetMapping("/admin/sms")
+    SmsOverview sms(@RequestHeader(value = "Authorization", required = false) String auth) {
+        access.requirePermission(auth, "settings.manage");
+        var recent = jdbc.sql("""
+                SELECT id, phone, notification_type, status, attempts, last_error, created_at, sent_at, next_attempt_at
+                FROM platform_sms_outbox ORDER BY (status = 'failed') DESC, id DESC LIMIT 50""").query(SmsRow.class).list();
+        return new SmsOverview(smsOutbox.summary(), recent);
+    }
 
     @GetMapping("/admin/settings")
     List<Settings.SettingView> allSettings(@RequestHeader(value = "Authorization", required = false) String auth) {

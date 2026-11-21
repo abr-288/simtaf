@@ -1,7 +1,6 @@
 package com.menewa.giving;
 
 import com.menewa.identity.IdentityAccess;
-import com.menewa.identity.IdentityPermissions;
 import com.menewa.identity.IdentityUser;
 import com.menewa.platform.Audit;
 import java.util.HashMap;
@@ -50,8 +49,7 @@ class GivingAdminController {
 
     @GetMapping("/dashboard")
     GivingQueries.AdminDashboard dashboard(@RequestHeader(value = AUTH, required = false) String auth) {
-        IdentityUser u = access.requireAdmin(auth);
-        if (IdentityPermissions.has(u, "requests.manage")) requests.runDueScan();
+        access.requireAdmin(auth); // relances d'échéances : tâche planifiée GivingReminders
         return queries.adminDashboard();
     }
 

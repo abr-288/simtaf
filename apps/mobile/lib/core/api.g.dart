@@ -2322,6 +2322,44 @@ class ApiSettingView {
   final ApiJsonNode? value;
 }
 
+class ApiSmsOverview {
+  const ApiSmsOverview({required this.recent, this.summary});
+
+  factory ApiSmsOverview.fromJson(Map<String, dynamic> j) => ApiSmsOverview(
+        recent: _list(j['recent'], (e) => ApiSmsRow.fromJson(_map(e))),
+        summary: j['summary'] is Map ? ApiSummary.fromJson(_map(j['summary'])) : null,
+      );
+
+  final List<ApiSmsRow> recent;
+  final ApiSummary? summary;
+}
+
+class ApiSmsRow {
+  const ApiSmsRow({required this.attempts, this.createdAt, this.id, this.lastError, this.nextAttemptAt, this.notificationType, this.phone, this.sentAt, this.status});
+
+  factory ApiSmsRow.fromJson(Map<String, dynamic> j) => ApiSmsRow(
+        attempts: _int(j['attempts']),
+        createdAt: j['createdAt']?.toString(),
+        id: j['id'] == null ? null : _int(j['id']),
+        lastError: j['lastError']?.toString(),
+        nextAttemptAt: j['nextAttemptAt']?.toString(),
+        notificationType: j['notificationType']?.toString(),
+        phone: j['phone']?.toString(),
+        sentAt: j['sentAt']?.toString(),
+        status: j['status']?.toString(),
+      );
+
+  final int attempts;
+  final String? createdAt;
+  final int? id;
+  final String? lastError;
+  final String? nextAttemptAt;
+  final String? notificationType;
+  final String? phone;
+  final String? sentAt;
+  final String? status;
+}
+
 class ApiStatRow {
   const ApiStatRow({required this.late, this.providers, this.request});
 
@@ -2358,6 +2396,20 @@ class ApiStatus {
 
   final String? label;
   final String? tone;
+}
+
+class ApiSummary {
+  const ApiSummary({required this.failed, required this.pending, required this.sent});
+
+  factory ApiSummary.fromJson(Map<String, dynamic> j) => ApiSummary(
+        failed: _int(j['failed']),
+        pending: _int(j['pending']),
+        sent: _int(j['sent']),
+      );
+
+  final int failed;
+  final int pending;
+  final int sent;
 }
 
 class ApiSupport {

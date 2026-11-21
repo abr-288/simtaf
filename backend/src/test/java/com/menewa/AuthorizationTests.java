@@ -124,6 +124,19 @@ class AuthorizationTests extends ApiTestBase {
     }
 
     @Test
+    void sessionRefreshIssuesANewTokenAndRevokesTheOldOne() throws Exception {
+        Account member = register("donor");
+        var refreshed = body(postJson("/api/auth/refresh", member.token(), null).andExpect(status().isOk()));
+        String fresh = refreshed.get("accessToken").asText();
+        assertThat(fresh).isNotEqualTo(member.token());
+        assertThat(refreshed.at("/user/id").asLong()).isEqualTo(member.id());
+        getAs("/api/auth/me", fresh).andExpect(status().isOk());
+        getAs("/api/auth/me", member.token()).andExpect(status().isUnauthorized()); // ancien jeton invalidé
+        postJson("/api/auth/refresh", member.token(), null).andExpect(status().isUnauthorized());
+        postJson("/api/auth/refresh", null, null).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void sessionsAreRevokedOnLogout() throws Exception {
         Account member = register("client");
         getAs("/api/auth/me", member.token()).andExpect(status().isOk());

@@ -33,16 +33,16 @@ class IdentityMaintenance {
         this.ipWindow = ipWindow;
     }
 
-    record Result(int expiredSessions, int oldChallenges, int trackedIps) {}
+    record MaintenanceResult(int expiredSessions, int oldChallenges, int trackedIps) {}
 
     @Scheduled(cron = "${menewa.identity.maintenance-cron:0 7 * * * *}")
     @Transactional
-    public Result purge() {
+    public MaintenanceResult purge() {
         Instant now = Instant.now();
         int expired = sessions.deleteExpired(now);
         int old = challenges.deleteCreatedBefore(now.minus(otpRetention));
         ipLimiter.purge(ipWindow);
-        var result = new Result(expired, old, ipLimiter.trackedKeys());
+        var result = new MaintenanceResult(expired, old, ipLimiter.trackedKeys());
         if (expired + old > 0) log.info("Ménage identity : {} session(s) expirée(s), {} code(s) ancien(s) supprimé(s)", expired, old);
         return result;
     }

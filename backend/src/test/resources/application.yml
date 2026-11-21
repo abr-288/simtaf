@@ -20,6 +20,7 @@ springdoc:
   api-docs.version: openapi_3_0
 menewa:
   identity:
+    maintenance-cron: "-"
     otp:
       dev-mode: true
       secret: test-secret-for-otp-hashing
@@ -28,3 +29,9 @@ menewa:
       max-failures-per-ip: 1000000
   storage:
     dir: ./build/test-storage
+  # Tâches planifiées coupées pendant les tests : chaque test les déclenche lui-même.
+  sms:
+    outbox-delay: PT1000H
+    outbox-initial-delay: PT1000H
+  giving:
+    reminders-cron: "-"

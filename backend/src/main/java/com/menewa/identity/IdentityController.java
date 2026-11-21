@@ -46,6 +46,11 @@ public class IdentityController {
         return IdentityPermissions.ALL.stream().filter(permission -> IdentityPermissions.has(user, permission)).collect(Collectors.toUnmodifiableSet());
     }
 
+    @PostMapping("/refresh")
+    SessionResponse refresh(@RequestHeader(value = "Authorization", required = false) String authorization) {
+        return identity.refresh(authorization);
+    }
+
     @PostMapping("/logout")
     ResponseEntity<Void> logout(@RequestHeader(value = "Authorization", required = false) String authorization) {
         identity.logout(authorization);

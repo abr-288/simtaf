@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Envoi de SMS de notification via la passerelle HTTP JSON {to, message, sender}.
- * Sans SMS_GATEWAY_URL, le message est seulement journalisé. Un échec d'envoi ne fait jamais échouer l'action métier.
+ * Sans SMS_GATEWAY_URL, le message est seulement journalisé. Appelée par {@link SmsOutbox} en arrière-plan, jamais pendant une action métier.
  */
 @Component
 class SmsGateway {
@@ -30,10 +30,11 @@ class SmsGateway {
         this.token = token;
     }
 
-    void send(String to, String message) {
+    /** Résultat d'un envoi : null si accepté par la passerelle, sinon la raison de l'échec. */
+    String send(String to, String message) {
         if (url == null || url.isBlank()) {
             log.info("[SMS:demo] -> {}: {}", to, message);
-            return;
+            return null;
         }
         try {
             String body = json.writeValueAsString(Map.of("to", to, "message", message, "sender", "MenewaNaya"));
@@ -41,9 +42,10 @@ class SmsGateway {
                     .header("Content-Type", "application/json").POST(HttpRequest.BodyPublishers.ofString(body));
             if (token != null && !token.isBlank()) request.header("Authorization", "Bearer " + token);
             int status = client.send(request.build(), HttpResponse.BodyHandlers.discarding()).statusCode();
-            if (status < 200 || status >= 300) log.warn("SMS gateway returned HTTP {}", status);
+            if (status < 200 || status >= 300) return "HTTP " + status;
+            return null;
         } catch (Exception ex) {
-            log.warn("SMS delivery failed: {}", ex.getMessage());
+            return ex.getClass().getSimpleName() + (ex.getMessage() == null ? "" : " : " + ex.getMessage());
         }
     }
 }

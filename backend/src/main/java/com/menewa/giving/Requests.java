@@ -412,21 +412,43 @@ class Requests {
         return "Don clôturé. Tokens attribués au donateur selon les règles.";
     }
 
-    /** Notifie les échéances proches (idempotent : une notification par échéance). */
+    /** Rappel avant échéance (idempotent : un seul rappel par échéance). Lancé chaque jour par {@link GivingReminders}. */
     int runDueScan() {
         int days = settings.intValue("requests.late_alert_days", 3);
         record Due(Long id, Long requestId, int seq, OffsetDateTime dueDate) {}
-        var due = db.jdbc.sql("SELECT id, request_id, seq, due_date FROM giving_installments WHERE status = 'planned' AND notified_at IS NULL AND due_date <= :lim")
-                .param("lim", OffsetDateTime.now().plusDays(days)).query(Due.class).list();
-        var fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        var due = db.jdbc.sql("SELECT id, request_id, seq, due_date FROM giving_installments WHERE status = 'planned' AND notified_at IS NULL AND due_date <= :lim AND due_date >= :now")
+                .param("lim", OffsetDateTime.now().plusDays(days)).param("now", OffsetDateTime.now()).query(Due.class).list();
+        int sent = 0;
         for (Due d : due) {
             var r = db.request(d.requestId());
-            if (!Set.of("accepted", "in_progress", "submitted").contains(r.status())) continue;
-            String body = "Échéance " + d.seq() + " le " + d.dueDate().format(fmt);
+            db.jdbc.sql("UPDATE giving_installments SET notified_at = :now WHERE id = :id").param("now", GivingDb.now()).param("id", d.id()).update();
+            if (!OPEN_FOR_INSTALLMENTS.contains(r.status())) continue;
+            String body = "Échéance " + d.seq() + " prévue le " + d.dueDate().format(DAY);
             notifications.notify(r.userId(), "due_soon", "Échéance proche — " + r.ref(), body, "/espace/demandes/" + r.id());
             notifications.notifyAdmins("requests.manage", "due_soon", "Échéance proche — " + r.ref(), body, "/admin/demandes/" + r.id());
-            db.jdbc.sql("UPDATE giving_installments SET notified_at = :now WHERE id = :id").param("now", GivingDb.now()).param("id", d.id()).update();
+            sent++;
         }
-        return due.size();
+        return sent;
     }
+
+    /** Relance unique quand une échéance planifiée est dépassée sans avoir été réalisée. */
+    int runOverdueScan() {
+        record Due(Long id, Long requestId, int seq, OffsetDateTime dueDate) {}
+        var late = db.jdbc.sql("SELECT id, request_id, seq, due_date FROM giving_installments WHERE status = 'planned' AND overdue_notified_at IS NULL AND due_date < :now")
+                .param("now", OffsetDateTime.now()).query(Due.class).list();
+        int sent = 0;
+        for (Due d : late) {
+            var r = db.request(d.requestId());
+            db.jdbc.sql("UPDATE giving_installments SET overdue_notified_at = :now WHERE id = :id").param("now", GivingDb.now()).param("id", d.id()).update();
+            if (!OPEN_FOR_INSTALLMENTS.contains(r.status())) continue;
+            String body = "L’échéance " + d.seq() + " du " + d.dueDate().format(DAY) + " n’est pas encore réalisée.";
+            notifications.notify(r.userId(), "due_late", "Échéance en retard — " + r.ref(), body, "/espace/demandes/" + r.id());
+            notifications.notifyAdmins("requests.manage", "due_late", "Échéance en retard — " + r.ref(), body, "/admin/demandes/" + r.id());
+            sent++;
+        }
+        return sent;
+    }
+
+    private static final Set<String> OPEN_FOR_INSTALLMENTS = Set.of("accepted", "in_progress", "submitted");
+    private static final java.time.format.DateTimeFormatter DAY = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
 }
