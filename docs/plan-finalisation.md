@@ -7,7 +7,7 @@ Objectif : `backend/` porte toute la logique métier et les données ; `apps/` (
 | 0 | Commits sur une branche, nettoyage (retrait du module `projects`) | ½ j | ✅ fait (20/11/2026) |
 | 1 | Séparation back/front : contrat OpenAPI, référentiel `/api/v1/reference`, génération et contrôle des clients, règles d’affichage déplacées dans l’API | 2–3 j | ✅ fait (20/11/2026) |
 | 2 | Qualité : tests par module et tests d’autorisation sur PostgreSQL, tests de bout en bout Playwright, `flutter analyze`/`flutter test`, modèles Dart générés, CI GitHub Actions | 4–5 j | ✅ fait (21/11/2026) |
-| 3 | Fonctionnel : mobile au niveau du web (services, campagnes, publications, litiges), relances d’échéances planifiées, notifications asynchrones, renouvellement de session mobile, photos de l’accueil, choix paiement / SMS / e-mail | 5–8 j | à faire |
+| 3 | Fonctionnel : mobile au niveau du web (services, campagnes, publications, litiges), relances d’échéances planifiées, notifications asynchrones, renouvellement de session mobile, photos de l’accueil, choix paiement / SMS / e-mail | 5–8 j | en partie (21/11/2026) : tout sauf les photos de l’accueil et le choix des prestataires (décisions attendues) |
 | 4 | Production : domaine, OTP réel (SMS), suppression des protections de démo, ~~limitation par IP~~, sauvegardes automatiques (~~quotidiennes~~, copie hors serveur à brancher), surveillance, stockage objet | 3–4 j | en partie (21/11/2026) : limitation par IP, sauvegardes quotidiennes, ménage des sessions |
 | 5 | Reprise des données réelles d’eleos (si elles existent) : répétition, réconciliation, bascule (`sample/` est conservé comme sauvegarde de l’ancien code) | 1–2 j | à faire |
 | 6 | Publication mobile : icônes, signature, Play Store / App Store, tests internes | 3–5 j | à faire |
@@ -48,6 +48,28 @@ Objectif : `backend/` porte toute la logique métier et les données ; `apps/` (
 - **CI GitHub Actions** : jobs backend (tests + contrat à jour), web (contrat, types, lint, build), mobile (analyze, test) ; bout en bout au déclenchement manuel.
 
 Reste pour la phase 3 : les écrans mobiles lisent encore certaines réponses (tableaux de bord, détails) par clé. Ils passeront aux modèles générés au fil de leur refonte.
+
+## Phase 3 — ce qui a été livré (21/11/2026)
+
+- **Relances d’échéances** (`GivingReminders`) : chaque jour à 8 h, heure de Lomé, le donateur et les gestionnaires reçoivent :
+  - un rappel avant l’échéance (délai : paramètre `requests.late_alert_days`) ;
+  - une relance unique en cas de retard (migration V13).
+  Avant, le scan ne tournait que si un administrateur ouvrait son tableau de bord.
+- **SMS en file d’envoi** (`SmsOutbox`, migration V12) :
+  - écrits dans la même transaction que l’action, envoyés en arrière-plan ;
+  - réessayés après 1 min, 5 min, 30 min et 2 h, puis abandonnés ;
+  - suivis dans l’administration, page Paramètres, section « Envois SMS ».
+  Une passerelle lente ou en panne ne bloque plus aucune action. Les codes de connexion restent envoyés immédiatement.
+- **Renouvellement de session** : `POST /api/auth/refresh` délivre un nouveau jeton et invalide l’ancien. Le mobile renouvelle au démarrage si la session expire dans moins de 7 jours.
+- **Mobile au niveau du web** :
+  - services communautaires : recherche de prestataire, demande, négociation, étapes, avis ;
+  - campagnes : contribution, soutien en Mena ;
+  - publications du partenaire ;
+  - litiges : consultation depuis la demande, réponse avec photo.
+  La navigation est organisée par rôle. Les nouveaux écrans utilisent les modèles générés.
+- **Reste, en attente de décisions** :
+  - les photos de l’accueil (`hero.jpg`, `kitchen.jpg`, `network.jpg`, `man.jpg`, `woman.jpg`) ;
+  - le choix des prestataires de paiement en ligne, de SMS et d’e-mail.
 
 ## Flux de travail
 
