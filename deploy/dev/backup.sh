@@ -28,7 +28,7 @@ log "base sauvegardée : $db ($(du -h "$db" | cut -f1))"
 files="$BACKUP_DIR/menewa-files-$stamp.tar.gz"
 docker run --rm -v menewa_storage:/data:ro -v "$BACKUP_DIR":/backup alpine:3.20 \
   tar -czf "/backup/$(basename "$files").part" -C /data .
-mv "$files.part" "$files"
+mv "$files.part" "$files" && chmod 600 "$files"   # créé dans le conteneur : droits resserrés
 log "fichiers sauvegardés : $files ($(du -h "$files" | cut -f1))"
 
 # 3. Rotation locale.
