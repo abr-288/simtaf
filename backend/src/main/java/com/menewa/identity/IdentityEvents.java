@@ -15,6 +15,9 @@ public final class IdentityEvents {
     /** Connexion réussie. */
     public record UserLoggedIn(Long userId, String role) {}
 
+    /** Déconnexion volontaire (session supprimée). */
+    public record UserLoggedOut(Long userId, String role) {}
+
     /** Rôle modifié par l'administration (les permissions sont dans `details`). */
     public record UserRoleChanged(Long userId, String fromRole, String toRole) {}
 

@@ -56,6 +56,11 @@ public class Audit {
     }
 
     @EventListener
+    void onLogout(IdentityEvents.UserLoggedOut e) {
+        record(e.userId(), e.role(), "user.logout", "user", e.userId(), null);
+    }
+
+    @EventListener
     void onIdentityAudited(IdentityEvents.IdentityAudited e) {
         record(e.actorId(), e.actorRole(), e.action(), e.entity(), e.entityId(), e.details());
     }

@@ -130,5 +130,8 @@ class AuthorizationTests extends ApiTestBase {
         postJson("/api/auth/logout", member.token(), null).andExpect(status().isNoContent());
         getAs("/api/auth/me", member.token()).andExpect(status().isUnauthorized());
         getAs("/api/auth/me", "jeton-invente").andExpect(status().isUnauthorized());
+        // Inscription, connexion et déconnexion sont tracées au journal d'audit.
+        assertThat(body(getAs("/api/v1/admin/audit?actor=" + member.id(), admin())).findValuesAsText("action"))
+                .contains("user.register", "user.login", "user.logout");
     }
 }

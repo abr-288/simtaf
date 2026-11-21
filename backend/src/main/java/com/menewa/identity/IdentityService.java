@@ -129,7 +129,12 @@ class IdentityService {
 
     @Transactional
     void logout(String authorization) {
-        if (authorization != null && authorization.startsWith("Bearer ")) sessions.deleteById(sha256(authorization.substring(7)));
+        if (authorization == null || !authorization.startsWith("Bearer ")) return;
+        sessions.findById(sha256(authorization.substring(7))).ifPresent(session -> {
+            sessions.delete(session);
+            IdentityUser user = session.getUser();
+            events.publishEvent(new IdentityEvents.UserLoggedOut(user.getId(), user.getRole()));
+        });
     }
 
     static String normalizePhone(String raw) {
