@@ -3,7 +3,8 @@ import {
   ArrowRight, BookOpen, Building2, CreditCard, Globe, HandHeart, Handshake, Heart, Landmark, Leaf,
   Network, Search, TrendingUp, User, Users,
 } from "lucide-react";
-import { getPublicSettings } from "@menewa/api-client";
+import { getCatalog, getPublicSettings } from "@menewa/api-client";
+import ImpactSimulator, { DEFAULT_ITEMS, type SimItem } from "@/components/ImpactSimulator";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,11 @@ function Hand({ children, className = "" }: { children: React.ReactNode; classNa
 export default async function Home() {
   const fallback = { beneficiaries: "—", partners: "—", gifts: "—", members: "—" };
   const stats = await getPublicSettings().then((s) => ({ ...fallback, ...(s["public.stats"] ?? {}) })).catch(() => fallback);
+  // Simulateur : catalogue réel de l'API ; dons d'exemple seulement si l'API ne répond pas.
+  const simItems: SimItem[] = await getCatalog()
+    .then((c) => c.items.map((i) => ({ id: i.id, title: i.title, description: i.description, unit: i.unit, unitPrice: i.unitPrice, emoji: i.emoji })))
+    .then((items) => (items.length ? items : DEFAULT_ITEMS))
+    .catch(() => DEFAULT_ITEMS);
 
   return (
     <>
@@ -145,6 +151,10 @@ export default async function Home() {
           </ul>
         </div>
         <div className="pattern-strip absolute bottom-3 right-0 hidden h-28 w-5 lg:block" aria-hidden />
+      </section>
+      {/* SIMULATEUR D'IMPACT */}
+      <section id="simulateur" className="mx-auto mt-6 max-w-[1400px] scroll-mt-20 px-4 py-6 lg:px-7">
+        <ImpactSimulator items={simItems} />
       </section>
 
       {/* COMMENT ÇA MARCHE */}
