@@ -65,9 +65,10 @@ Ce serveur héberge d'autres sites (bossiz, yedi…). Tenez `/srv/README.md` à 
 ## Première installation
 
 ```sh
-# 1. Sur le poste, depuis la racine du dépôt : archive du code commité (sans sample/, l'ancien code)
-git archive --format=tar.gz -o menewa.tar.gz HEAD -- . ':(exclude)sample'
-scp menewa.tar.gz ubuntu@<serveur>:/tmp/
+# 1. Sur le poste, depuis la racine du dépôt : archive du code commité (sans sample/, l'ancien code).
+#    Chemin relatif pour l'archive : le tar de Git Bash ne comprend pas les chemins « C:\… ».
+git -c core.autocrlf=false archive --format=tar.gz -o ../menewa.tar.gz HEAD -- . ':(exclude)sample'
+scp ../menewa.tar.gz ubuntu@<serveur>:/tmp/ && rm ../menewa.tar.gz
 
 # 2. Sur le serveur
 sudo install -d -o "$USER" -g "$USER" /opt/menewa
@@ -92,9 +93,10 @@ Au premier lancement, `deploy.sh` :
 On ne modifie jamais `/opt/menewa` en place. La nouvelle version est préparée à côté, puis on bascule. L'ancienne version reste dans `/opt/menewa.prev` pour un retour arrière.
 
 ```sh
-# 1. Sur le poste : commiter, puis archiver HEAD (seul le code commité part en production)
-git archive --format=tar.gz -o menewa.tar.gz HEAD -- . ':(exclude)sample'
-scp menewa.tar.gz ubuntu@<serveur>:/tmp/
+# 1. Sur le poste : commiter, puis archiver HEAD (seul le code commité part en production).
+#    core.autocrlf=false : sous Windows, sans cette option, l'archive convertit les fins de ligne en CRLF.
+git -c core.autocrlf=false archive --format=tar.gz -o ../menewa.tar.gz HEAD -- . ':(exclude)sample'
+scp ../menewa.tar.gz ubuntu@<serveur>:/tmp/ && rm ../menewa.tar.gz
 
 # 2. Sur le serveur : sauvegarde avant toute modification
 cd /opt/menewa/deploy/dev && sudo ./backup.sh
@@ -218,6 +220,8 @@ Le Caddyfile contient un hash du mot de passe d'accès. Modifier `.access-passwo
 | 502 sur un site | le conteneur ne tourne pas ou démarre encore : `docker compose --env-file .env ps` et ses journaux |
 | Le backend redémarre en boucle | migration Flyway en échec ou base injoignable : `logs backend` |
 | `deploy.sh` s'arrête sur « Caddyfile invalide » | le proxy n'a pas été modifié ; corriger le bloc puis relancer |
+| `deploy.sh` s'arrête sur « Build failed because of webpack errors » | souvent passager (téléchargement raté pendant `next build`) : relancer `./deploy.sh`. Les conteneurs en service ne sont remplacés qu'une fois tous les builds réussis |
+| « Permission denied » sur un script | bit exécutable perdu : `chmod +x *.sh`, et côté dépôt `git update-index --chmod=+x <script>` |
 | Build interrompu, mémoire insuffisante | un seul build à la fois (ne pas lancer `build-apk.sh` pendant `deploy.sh`) |
 
 ## Retirer Menewa du serveur
