@@ -16,20 +16,6 @@ export type SimItem = {
   imageUrl?: string | null;
 };
 
-/* Dons d'EXEMPLE (démo, sans base de données).
-   Pour brancher le catalogue réel : <ImpactSimulator items={…} /> avec des SimItem. */
-export const DEFAULT_ITEMS: SimItem[] = [
-  { id: 1, title: "Pack alimentaire famille", description: "Riz, huile, haricots, farine, sel, tomate — pour une famille pendant un mois.", unit: "pack", unitPrice: 15000, emoji: "🍚" },
-  { id: 2, title: "Pack repas enfants", description: "Repas équilibrés pour 10 enfants pendant une semaine.", unit: "pack", unitPrice: 8000, emoji: "🥣" },
-  { id: 3, title: "Kit de fournitures scolaires", description: "Cahiers, stylos, ardoise, sac.", unit: "kit", unitPrice: 7500, emoji: "🎒" },
-  { id: 4, title: "Lampe solaire", description: "Éclairage autonome pour étudier le soir.", unit: "unité", unitPrice: 6000, emoji: "💡" },
-  { id: 5, title: "Habits pour enfant", description: "Tenue complète (haut, bas, sous-vêtements).", unit: "tenue", unitPrice: 12000, emoji: "👕" },
-  { id: 6, title: "Visite à une personne", description: "Un bénévole rend visite à une personne âgée, malade ou isolée.", unit: "visite", unitPrice: 5000, emoji: "🤝" },
-  { id: 7, title: "Lot de 5 volailles", description: "Cinq poulets pour démarrer un petit élevage ou partager un repas.", unit: "lot", unitPrice: 25000, emoji: "🐓" },
-  { id: 8, title: "Matelas", description: "Matelas neuf pour une personne.", unit: "unité", unitPrice: 20000, emoji: "🛏️" },
-  { id: 9, title: "Bélier", description: "Un bélier pour une fête ou une famille dans le besoin.", unit: "tête", unitPrice: 85000, emoji: "🐏" },
-];
-
 const CFG = { min: 1000, max: 500000, step: 1000, def: 50000, presets: [5000, 10000, 25000, 50000, 100000, 250000], months: 12 };
 /* Aucun taux inventé : à renseigner une fois le régime fiscal validé. */
 const TAX = { enabled: false, ratePct: 0, organizationEligible: false };
@@ -108,7 +94,8 @@ function AddButton({ disabled, children }: { disabled: boolean; children: React.
   );
 }
 
-export default function ImpactSimulator({ items = DEFAULT_ITEMS }: { items?: SimItem[] }) {
+/** Les dons affichés viennent du catalogue de l'API (aucune donnée en dur dans le front). */
+export default function ImpactSimulator({ items }: { items: SimItem[] }) {
   const [amount, setAmount] = useState(CFG.def);
   const [monthly, setMonthly] = useState(false);
   const [selId, setSelId] = useState<SimItem["id"] | null>(null);

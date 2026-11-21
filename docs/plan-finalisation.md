@@ -9,7 +9,7 @@ Objectif : `backend/` porte toute la logique métier et les données ; `apps/` (
 | 2 | Qualité : tests par module et tests d’autorisation sur PostgreSQL, tests de bout en bout Playwright, `flutter analyze`/`flutter test`, modèles Dart générés, CI GitHub Actions | 4–5 j | ✅ fait (21/11/2026) |
 | 3 | Fonctionnel : mobile au niveau du web (services, campagnes, publications, litiges), relances d’échéances planifiées, notifications asynchrones, renouvellement de session mobile, photos de l’accueil, choix paiement / SMS / e-mail | 5–8 j | à faire |
 | 4 | Production : domaine, OTP réel (SMS), suppression des protections de démo, limitation par IP, sauvegardes automatiques hors serveur, surveillance, stockage objet | 3–4 j | à faire |
-| 5 | Reprise des données réelles d’eleos (si elles existent) : répétition, réconciliation, bascule, suppression de `sample/` | 1–2 j | à faire |
+| 5 | Reprise des données réelles d’eleos (si elles existent) : répétition, réconciliation, bascule (`sample/` est conservé comme sauvegarde de l’ancien code) | 1–2 j | à faire |
 | 6 | Publication mobile : icônes, signature, Play Store / App Store, tests internes | 3–5 j | à faire |
 
 ## Phase 1 — ce qui a été livré
@@ -27,7 +27,7 @@ Objectif : `backend/` porte toute la logique métier et les données ; `apps/` (
   - `apps/{admin,saas,mobile}` : interfaces ;
   - `packages/` : client, types, composants ;
   - `deploy/` et `docs/` ;
-  - `sample/` reste jusqu’à la phase 5.
+  - `sample/` : sauvegarde de l’ancien code d’eleos (Next.js + Drizzle), conservée à titre de référence ; rien ne l’utilise et il n’est ni compilé ni déployé.
 
 ### Choix assumés
 

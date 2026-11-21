@@ -4,7 +4,7 @@ import {
   Network, Search, TrendingUp, User, Users,
 } from "lucide-react";
 import { getCatalog, getPublicSettings } from "@menewa/api-client";
-import ImpactSimulator, { DEFAULT_ITEMS, type SimItem } from "@/components/ImpactSimulator";
+import ImpactSimulator, { type SimItem } from "@/components/ImpactSimulator";
 
 export const dynamic = "force-dynamic";
 
@@ -31,11 +31,10 @@ function Hand({ children, className = "" }: { children: React.ReactNode; classNa
 export default async function Home() {
   const fallback = { beneficiaries: "—", partners: "—", gifts: "—", members: "—" };
   const stats = await getPublicSettings().then((s) => ({ ...fallback, ...(s["public.stats"] ?? {}) })).catch(() => fallback);
-  // Simulateur : catalogue réel de l'API ; dons d'exemple seulement si l'API ne répond pas.
+  // Simulateur : catalogue de l'API ; si elle ne répond pas, le simulateur indique qu'aucun don n'est disponible.
   const simItems: SimItem[] = await getCatalog()
     .then((c) => c.items.map((i) => ({ id: i.id, title: i.title, description: i.description, unit: i.unit, unitPrice: i.unitPrice, emoji: i.emoji })))
-    .then((items) => (items.length ? items : DEFAULT_ITEMS))
-    .catch(() => DEFAULT_ITEMS);
+    .catch(() => []);
 
   return (
     <>
