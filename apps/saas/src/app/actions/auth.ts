@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requestOtp, revokeIdentitySession, sendContact, verifyOtp } from '@menewa/api-client';
 import type { OtpRequestInput } from '@menewa/shared-types';
+import { consumePendingCart } from '@/lib/pending-cart';
 import { SESSION_COOKIE } from '@/lib/session';
 
 export type LoginState = { step: 'phone' | 'code'; phone?: string; mode?: 'login' | 'register'; name?: string; role?: string; devCode?: string; error?: string };
@@ -26,6 +27,7 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
     }
   }
 
+  let destination = '/espace';
   try {
     const session = await verifyOtp(phone, String(formData.get('code') ?? '').replace(/\D/g, ''));
     if (['admin', 'subadmin'].includes(session.user.role)) {
@@ -35,10 +37,12 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
     (await cookies()).set(SESSION_COOKIE, session.accessToken, {
       httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/', expires: new Date(session.expiresAt),
     });
+    // Don choisi dans le simulateur avant la connexion : ajouté au panier maintenant.
+    destination = (await consumePendingCart(session.accessToken, session.user.role)) ?? destination;
   } catch (error) {
     return { step: 'code', phone, mode, name, role, error: error instanceof Error ? error.message : 'Code invalide.' };
   }
-  redirect('/espace');
+  redirect(destination);
 }
 
 export async function contactAction(_p: { ok?: string; error?: string } | null, fd: FormData): Promise<{ ok?: string; error?: string }> {

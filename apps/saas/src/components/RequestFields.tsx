@@ -4,13 +4,14 @@ import { useState } from 'react';
 import type { Target } from '@menewa/shared-types';
 import { ANNEX_LABELS, fcfa, PAYMENT_MODE, RECURRENCE } from '@menewa/ui';
 
-export function ScheduleFields() {
+/** `recurrence`/`occurrences` : valeurs proposées par défaut (ex. don mensuel choisi dans le simulateur). */
+export function ScheduleFields({ recurrence = 'none', occurrences = 3 }: { recurrence?: string; occurrences?: number } = {}) {
   return (
     <fieldset className="space-y-3 rounded-xl border border-slate-200 p-4">
       <legend className="px-2 text-sm font-bold text-brand-dark">Échéancier et paiement</legend>
       <div className="grid gap-3 sm:grid-cols-3">
-        <div><label className="label">Fréquence</label><select name="recurrence" className="input" defaultValue="none">{Object.entries(RECURRENCE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
-        <div><label className="label">Nombre d’échéances</label><input name="occurrences" type="number" min={2} max={60} defaultValue={3} className="input" /></div>
+        <div><label className="label">Fréquence</label><select name="recurrence" className="input" defaultValue={recurrence}>{Object.entries(RECURRENCE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
+        <div><label className="label">Nombre d’échéances</label><input name="occurrences" type="number" min={2} max={60} defaultValue={occurrences} className="input" /></div>
         <div><label className="label">Date de début</label><input name="startDate" type="date" className="input" /></div>
       </div>
       <div>

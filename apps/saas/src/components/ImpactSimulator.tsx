@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
+import { addFromSimulator } from "@/app/actions/simulator";
 
 export type SimItem = {
   id: number | string;
@@ -97,6 +99,15 @@ function Card({ it, units, monthlyUnits, ratio, partial, missing, monthly, selec
   );
 }
 
+function AddButton({ disabled, children }: { disabled: boolean; children: React.ReactNode }) {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={disabled || pending} className="btn btn-green px-7 py-3.5 text-sm disabled:opacity-50">
+      {pending ? "Ajout au panier…" : children} <ArrowRight size={16} />
+    </button>
+  );
+}
+
 export default function ImpactSimulator({ items = DEFAULT_ITEMS }: { items?: SimItem[] }) {
   const [amount, setAmount] = useState(CFG.def);
   const [monthly, setMonthly] = useState(false);
@@ -118,6 +129,8 @@ export default function ImpactSimulator({ items = DEFAULT_ITEMS }: { items?: Sim
   const pct = Math.min(100, Math.max(0, ((Math.min(amount, CFG.max) - CFG.min) / (CFG.max - CFG.min)) * 100));
   const big = useCountUp(amount);
   const href = `/espace/catalogue?amount=${amount}&freq=${monthly ? "monthly" : "once"}`;
+  // Quantité ajoutée au panier : sur l'ensemble pour un don ponctuel, par mois pour un don mensuel.
+  const selQty = sel ? (monthly ? sel.monthlyUnits : sel.units) : 0;
 
   return (
     <div className="relative overflow-hidden rounded-[28px] bg-[#e9f3ed] p-5 sm:p-8 lg:p-10">
@@ -185,11 +198,27 @@ export default function ImpactSimulator({ items = DEFAULT_ITEMS }: { items?: Sim
           )}
 
           <div className="mt-5">
-            <Link href={href} aria-disabled={amount < 1} className={`btn btn-green px-7 py-3.5 text-sm ${amount < 1 ? "pointer-events-none opacity-50" : ""}`}>
-              {sel ? `Financer ${fmt(sel.units)} × ${sel.it.title}` : `Faire un don de ${fmt(amount)} FCFA${monthly ? " / mois" : ""}`} <ArrowRight size={16} />
-            </Link>
+            {sel ? (
+              // Don choisi : ajouté au panier (quantité par mois pour un don mensuel, plafonnée à 500 comme le panier).
+              <form action={addFromSimulator}>
+                <input type="hidden" name="itemId" value={String(sel.it.id)} />
+                <input type="hidden" name="quantity" value={Math.min(selQty, 500)} />
+                <input type="hidden" name="freq" value={monthly ? "monthly" : "once"} />
+                <AddButton disabled={selQty < 1}>
+                  {`Financer ${fmt(Math.min(selQty, 500))} × ${sel.it.title}${monthly ? " / mois" : ""}`}
+                </AddButton>
+              </form>
+            ) : (
+              <Link href={href} aria-disabled={amount < 1} className={`btn btn-green px-7 py-3.5 text-sm ${amount < 1 ? "pointer-events-none opacity-50" : ""}`}>
+                {`Faire un don de ${fmt(amount)} FCFA${monthly ? " / mois" : ""}`} <ArrowRight size={16} />
+              </Link>
+            )}
             <p className="mt-3 max-w-md text-[11px] leading-relaxed text-slate-500">
-              {sel ? "Le don choisi sera ajouté à votre panier. " : "Touchez un don à droite pour le financer en particulier. "}
+              {sel
+                ? selQty < 1
+                  ? `Ce don coûte ${fmt(sel.it.unitPrice)} FCFA : augmentez le montant mensuel pour le financer chaque mois. `
+                  : `Le don choisi sera ajouté à votre panier${monthly ? " (fréquence mensuelle sur 12 mois proposée)" : ""}, à valider ensuite. `
+                : "Touchez un don à droite pour le financer en particulier. "}
               Simulation indicative : aucun paiement n’est effectué ici, et chaque résultat est indépendant des autres.
             </p>
           </div>

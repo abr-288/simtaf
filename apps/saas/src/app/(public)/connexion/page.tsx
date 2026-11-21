@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { AuthForm } from '@/components/AuthForm';
 import { getSession } from '@/lib/session';
@@ -14,7 +15,8 @@ const DEMOS = [
   ['Bénéficiaire', '+228 90 00 00 05'],
 ];
 
-export default async function Page() {
+export default async function Page({ searchParams }: { searchParams: Promise<{ raison?: string }> }) {
+  const { raison } = await searchParams;
   const session = await getSession().catch(() => null);
   if (session) redirect('/espace');
   const demo = process.env.DEMO_ACCOUNTS === 'true';
@@ -24,6 +26,12 @@ export default async function Page() {
         <div className="card p-7">
           <h1 className="text-2xl font-bold text-brand-dark">Se connecter</h1>
           <p className="mb-5 mt-1 text-sm text-slate-600">Accédez à votre espace avec votre numéro de téléphone.</p>
+          {raison === 'simulateur' && (
+            <p className="mb-5 rounded-lg bg-[#fff3d6] px-3 py-2 text-sm text-[#6b4a07]">
+              Connectez-vous pour financer le don choisi dans le simulateur : il sera ajouté à votre panier.
+              Pas encore de compte ? <Link href="/inscription" className="font-semibold underline">Inscrivez-vous</Link>, le don vous attendra aussi.
+            </p>
+          )}
           <AuthForm mode="login" />
         </div>
         {demo && (

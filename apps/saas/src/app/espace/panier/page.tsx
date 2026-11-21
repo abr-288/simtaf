@@ -6,7 +6,9 @@ import { AnnexFields, ScheduleFields, TargetSelect } from '@/components/RequestF
 import { requireRole } from '@/lib/session';
 import { checkoutCart, removeCartItem } from '../actions';
 
-export default async function Page() {
+export default async function Page({ searchParams }: { searchParams: Promise<{ ajout?: string; freq?: string }> }) {
+  const { ajout, freq } = await searchParams;
+  const monthly = freq === 'monthly';
   const { token, user: u } = await requireRole('donor', 'client');
   const [cart, targets] = await Promise.all([getCart(token), getTargets()]);
   // Cible déjà choisie dans le catalogue : la première renseignée parmi les articles du panier
@@ -14,6 +16,12 @@ export default async function Page() {
   return (
     <>
       <PageHeader title="Mon panier" subtitle="Vérifiez vos dons, précisez la cible et validez : une demande sera créée et examinée par l’équipe." />
+      {ajout === 'simulateur' && cart.lines.length > 0 && (
+        <p role="status" className="mb-4 rounded-lg bg-mint px-4 py-3 text-sm text-brand-dark">
+          Le don choisi dans le simulateur a été ajouté à votre panier.
+          {monthly && ' Fréquence mensuelle sur 12 mois présélectionnée ci-dessous : vous pouvez la modifier.'}
+        </p>
+      )}
       {cart.lines.length === 0 ? (
         <Empty>Votre panier est vide. <Link href="/espace/catalogue" className="font-semibold text-brand underline">Parcourir le catalogue</Link></Empty>
       ) : (
@@ -41,7 +49,7 @@ export default async function Page() {
                 <div><label className="label" htmlFor="targetZone">Zone / ville</label><input id="targetZone" name="targetZone" className="input" placeholder="Ex. Kpalimé" /></div>
               </div>
               <div><label className="label" htmlFor="description">Précisions</label><textarea id="description" name="description" rows={2} className="input" placeholder="Informations utiles pour la remise" /></div>
-              <ScheduleFields />
+              <ScheduleFields {...(monthly ? { recurrence: 'monthly', occurrences: 12 } : {})} />
               <AnnexFields prices={cart.annexPrices} />
             </ActionForm>
           </Section>
