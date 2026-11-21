@@ -43,4 +43,20 @@ docker compose --env-file .env down              # arrêt (données conservées)
 docker compose --env-file .env down -v           # arrêt et remise à zéro des données
 ```
 
+## Sauvegardes
+
+- `backup.sh` sauvegarde la base (`pg_dump`, format personnalisé, contrôlé par `pg_restore --list`) et les fichiers déposés (volume `menewa_storage`) dans `/var/backups/menewa`, lisible par root seulement. Il conserve 14 jours de sauvegardes.
+- `deploy.sh` le planifie chaque nuit à 02:30 (`/etc/cron.d/menewa-backup`). Le journal est dans `/var/log/menewa-backup.log`.
+- **Copie hors serveur :** définir `BACKUP_RSYNC_TARGET=utilisateur@machine:/dossier` dans `.env`, avec une clé SSH de root autorisée sur la machine cible. Sans cela, les sauvegardes disparaîtraient avec le serveur ; le journal le signale chaque nuit.
+- Lancer une sauvegarde à la main : `sudo ./backup.sh`.
+- Vérifier qu'une sauvegarde se restaure, dans une base temporaire et sans toucher au service : `sudo ./restore.sh /var/backups/menewa/menewa-db-….dump`.
+- Remplacer la base en service, après une confirmation et une sauvegarde de l'état actuel : `sudo ./restore.sh <fichier> --production`.
+
+## Protections et ménage automatiques (API)
+
+- **Demandes de code :** au plus 3 par numéro en 10 minutes, et 30 par adresse IP par heure (`OTP_MAX_REQUESTS_PER_IP`).
+- **Codes erronés :** au plus 5 essais par code, et 30 échecs par adresse IP par heure (`OTP_MAX_FAILURES_PER_IP`).
+- Les limites par IP sont larges, car beaucoup d'abonnés mobiles partagent la même adresse. L'IP réelle est transmise par Caddy, puis relayée par les apps web.
+- **Ménage horaire :** suppression des sessions expirées, des codes de plus de 24 h et des compteurs d'IP périmés.
+
 Pour retirer Menewa du proxy, supprimez ses deux blocs dans `/srv/proxy/Caddyfile`, puis lancez `docker exec caddy caddy reload --config /etc/caddy/Caddyfile`.

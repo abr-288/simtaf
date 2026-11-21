@@ -61,6 +61,13 @@ if ! sudo grep -q "$API_HOST" "$PROXY_DIR/Caddyfile"; then
   sudo docker exec caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
 fi
 
+# Sauvegarde quotidienne à 02:30 (heure du serveur), installée une fois ; voir backup.sh.
+cron_line="30 2 * * * root $(pwd)/backup.sh >> /var/log/menewa-backup.log 2>&1"
+if [ "$(sudo cat /etc/cron.d/menewa-backup 2>/dev/null)" != "$cron_line" ]; then
+  echo "$cron_line" | sudo tee /etc/cron.d/menewa-backup > /dev/null
+  sudo chmod 644 /etc/cron.d/menewa-backup
+  echo "Sauvegarde quotidienne planifiée (/etc/cron.d/menewa-backup)."
+fi
 echo
 echo "Espace membre  : https://$SAAS_HOST"
 echo "Administration : https://$ADMIN_HOST  (téléphone $ADMIN_PHONE, code affiché à l'écran)"
