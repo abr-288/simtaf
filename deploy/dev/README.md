@@ -43,6 +43,13 @@ docker compose --env-file .env down              # arrêt (données conservées)
 docker compose --env-file .env down -v           # arrêt et remise à zéro des données
 ```
 
+## Application Android de test
+
+- `sudo ./build-apk.sh` compile l'APK branchée sur l'API de la zone de dev et la publie sur `https://<SAAS_HOST>/telechargement/menewa-test.apk`, derrière le mot de passe d'accès. La source utilisée est `apps/mobile`, à copier au préalable dans `/opt/menewa/apps/mobile`.
+- La clé de signature de test est créée au premier lancement dans `/opt/menewa-mobile-keys`, lisible par root seulement. La conserver permet d'installer chaque nouvelle version par-dessus la précédente ; la perdre oblige à désinstaller l'app.
+- La clé d'application de l'API (`MOBILE_API_KEY`) est intégrée à l'APK. Elle ne protège que la zone de test et n'a rien d'un secret fort.
+- Installation : ouvrir le lien sur le téléphone Android, se connecter avec le mot de passe d'accès, puis autoriser l'installation depuis le navigateur (« sources inconnues »).
+
 ## Sauvegardes
 
 - `backup.sh` sauvegarde la base (`pg_dump`, format personnalisé, contrôlé par `pg_restore --list`) et les fichiers déposés (volume `menewa_storage`) dans `/var/backups/menewa`, lisible par root seulement. Il conserve 14 jours de sauvegardes.

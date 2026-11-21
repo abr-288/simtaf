@@ -59,6 +59,9 @@ services:
       API_BASE_URL: http://backend:8080/api
       ADMIN_APP_URL: https://${ADMIN_HOST:?définir ADMIN_HOST}
       DEMO_ACCOUNTS: "true"
+      DOWNLOADS_DIR: /data/downloads
+    # Versions de test de l'application mobile, déposées par build-apk.sh (lecture seule ici).
+    volumes: [downloads:/data/downloads:ro]
     networks: [internal, proxy]
 
 networks:
@@ -69,3 +72,4 @@ networks:
 volumes:
   postgres-data:
   storage:
+  downloads:
