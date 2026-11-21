@@ -22,6 +22,8 @@ class IdentityService {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final Set<String> SELF_REGISTER_ROLES = Set.of("donor", "client", "provider", "partner", "beneficiary");
 
+    static final String OTP_REQUEST = "otp-request";
+    static final String OTP_FAILURE = "otp-failure";
     private final IdentityUserRepository users;
     private final OtpChallengeRepository challenges;
     private final IdentitySessionRepository sessions;
@@ -34,6 +36,10 @@ class IdentityService {
     private final Duration sessionTtl;
     private final int maxSends;
     private final int maxAttempts;
+    private final IpRateLimiter ipLimiter;
+    private final int maxRequestsPerIp;
+    private final int maxFailuresPerIp;
+    private final Duration ipWindow;
 
     IdentityService(IdentityUserRepository users, OtpChallengeRepository challenges,
             IdentitySessionRepository sessions, OtpDelivery delivery, ApplicationEventPublisher events,
@@ -43,7 +49,11 @@ class IdentityService {
             @Value("${menewa.identity.otp.send-window:PT10M}") Duration sendWindow,
             @Value("${menewa.identity.session.ttl:P14D}") Duration sessionTtl,
             @Value("${menewa.identity.otp.max-sends:3}") int maxSends,
-            @Value("${menewa.identity.otp.max-attempts:5}") int maxAttempts) {
+            @Value("${menewa.identity.otp.max-attempts:5}") int maxAttempts,
+            IpRateLimiter ipLimiter,
+            @Value("${menewa.identity.otp.max-requests-per-ip:30}") int maxRequestsPerIp,
+            @Value("${menewa.identity.otp.max-failures-per-ip:30}") int maxFailuresPerIp,
+            @Value("${menewa.identity.otp.ip-window:PT1H}") Duration ipWindow) {
         this.users = users;
         this.challenges = challenges;
         this.sessions = sessions;
@@ -56,10 +66,18 @@ class IdentityService {
         this.sessionTtl = sessionTtl;
         this.maxSends = maxSends;
         this.maxAttempts = maxAttempts;
+        this.ipLimiter = ipLimiter;
+        this.maxRequestsPerIp = maxRequestsPerIp;
+        this.maxFailuresPerIp = maxFailuresPerIp;
+        this.ipWindow = ipWindow;
     }
 
     @Transactional
     OtpResponse requestOtp(OtpRequest request) {
+        // Limite par IP comptée avant toute validation : elle freine aussi le test en masse de numéros (compte existant ou non).
+        String ip = IpRateLimiter.currentClientIp();
+        if (ipLimiter.count(OTP_REQUEST, ip, ipWindow) >= maxRequestsPerIp) throw failure(HttpStatus.TOO_MANY_REQUESTS, "otp_ip_rate_limited");
+        ipLimiter.record(OTP_REQUEST, ip);
         String phone = normalizePhone(request.phone());
         boolean register = "register".equals(request.mode());
         var existing = users.findByPhone(phone).orElse(null);
@@ -80,15 +98,21 @@ class IdentityService {
 
     @Transactional(noRollbackFor = ResponseStatusException.class)
     SessionResponse verifyOtp(OtpVerification request) {
+        String ip = IpRateLimiter.currentClientIp();
+        if (ipLimiter.count(OTP_FAILURE, ip, ipWindow) >= maxFailuresPerIp) throw failure(HttpStatus.TOO_MANY_REQUESTS, "otp_ip_rate_limited");
         String phone = normalizePhone(request.phone());
         var candidates = challenges.findAllByPhoneAndConsumedFalseAndExpiresAtAfterOrderByCreatedAtDesc(phone, Instant.now());
-        if (candidates.isEmpty()) throw failure(HttpStatus.UNAUTHORIZED, "otp_expired_or_missing");
+        if (candidates.isEmpty()) {
+            ipLimiter.record(OTP_FAILURE, ip);
+            throw failure(HttpStatus.UNAUTHORIZED, "otp_expired_or_missing");
+        }
         OtpChallenge challenge = candidates.getFirst();
         if (challenge.getAttempts() >= maxAttempts) throw failure(HttpStatus.TOO_MANY_REQUESTS, "otp_attempts_exceeded");
         challenge.incrementAttempts();
         if (!MessageDigest.isEqual(hash(phone, request.code()).getBytes(StandardCharsets.US_ASCII),
                 challenge.getCodeHash().getBytes(StandardCharsets.US_ASCII))) {
             challenges.save(challenge);
+            ipLimiter.record(OTP_FAILURE, ip);
             throw failure(HttpStatus.UNAUTHORIZED, "otp_invalid");
         }
         challenge.consume();

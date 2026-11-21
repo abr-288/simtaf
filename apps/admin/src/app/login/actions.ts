@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requestOtp, revokeIdentitySession, verifyOtp } from '@menewa/api-client';
+import { clientIp } from '@/lib/client-ip';
 import { SESSION_COOKIE } from '@/lib/session';
 
 export type AdminLoginState = { step: 'phone' | 'code'; phone?: string; devCode?: string; error?: string };
@@ -12,7 +13,7 @@ export async function adminLoginAction(_previous: AdminLoginState, formData: For
   const phone = String(formData.get('phone') ?? '').trim();
   if (step === 'phone') {
     try {
-      const result = await requestOtp({ phone, mode: 'login' });
+      const result = await requestOtp({ phone, mode: 'login' }, await clientIp());
       return { step: 'code', phone, devCode: result.devCode };
     } catch (error) {
       return { step: 'phone', phone, error: error instanceof Error ? error.message : 'Demande de code impossible.' };
@@ -20,7 +21,7 @@ export async function adminLoginAction(_previous: AdminLoginState, formData: For
   }
 
   try {
-    const session = await verifyOtp(phone, String(formData.get('code') ?? '').replace(/\D/g, ''));
+    const session = await verifyOtp(phone, String(formData.get('code') ?? '').replace(/\D/g, ''), await clientIp());
     if (!['admin', 'subadmin'].includes(session.user.role)) {
       await revokeIdentitySession(session.accessToken);
       return { step: 'phone', phone, error: 'Ce compte ne possède pas de droits administrateur.' };

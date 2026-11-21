@@ -21,6 +21,7 @@ const _errorMessages = <String, String>{
   'account_unavailable': "Ce compte est suspendu ou archivé. Contactez l'administration.",
   'name_required': 'Veuillez indiquer votre nom.',
   'otp_rate_limited': 'Trop de demandes de code. Réessayez dans quelques minutes.',
+  'otp_ip_rate_limited': 'Trop de tentatives depuis votre connexion. Réessayez dans une heure.',
   'otp_expired_or_missing': 'Code expiré ou introuvable. Demandez un nouveau code.',
   'otp_attempts_exceeded': 'Trop de tentatives. Demandez un nouveau code.',
   'otp_invalid': 'Code incorrect.',

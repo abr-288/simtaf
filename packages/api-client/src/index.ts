@@ -18,6 +18,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   account_unavailable: "Ce compte est suspendu ou archivé. Contactez l'administration.",
   name_required: 'Veuillez indiquer votre nom.',
   otp_rate_limited: 'Trop de demandes de code. Réessayez dans quelques minutes.',
+  otp_ip_rate_limited: 'Trop de tentatives depuis votre connexion. Réessayez dans une heure.',
   otp_expired_or_missing: 'Code expiré ou introuvable. Demandez un nouveau code.',
   otp_attempts_exceeded: 'Trop de tentatives. Demandez un nouveau code.',
   otp_invalid: 'Code incorrect.',
@@ -35,7 +36,8 @@ export class ApiRequestError extends Error {
   }
 }
 
-type RequestOptions = { token?: string; method?: string; body?: unknown; form?: FormData; raw?: boolean };
+/** `clientIp` : adresse du visiteur, relayée à l'API (limite des demandes de code par IP) quand l'appel part du serveur Next.js. */
+type RequestOptions = { token?: string; method?: string; body?: unknown; form?: FormData; raw?: boolean; clientIp?: string };
 
 function describe(status: number, body: Record<string, unknown>): string {
   const detail = String(body.detail ?? body.message ?? body.error ?? '');
@@ -51,6 +53,7 @@ function describe(status: number, body: Record<string, unknown>): string {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {};
   if (options.token) headers.Authorization = `Bearer ${options.token}`;
+  if (options.clientIp) headers['X-Forwarded-For'] = options.clientIp;
   let body: BodyInit | undefined;
   if (options.form) body = options.form;
   else if (options.body !== undefined) {
@@ -78,8 +81,8 @@ const qs = (params: Record<string, string | number | undefined | null>) => {
 export const getHealth = () => request<HealthStatus>('/health');
 
 /* ───────── Identité ───────── */
-export const requestOtp = (input: OtpRequestInput) => request<OtpRequestResult>('/auth/otp/request', { body: input });
-export const verifyOtp = (phone: string, code: string) => request<AuthSession>('/auth/otp/verify', { body: { phone, code } });
+export const requestOtp = (input: OtpRequestInput, clientIp?: string) => request<OtpRequestResult>('/auth/otp/request', { body: input, clientIp });
+export const verifyOtp = (phone: string, code: string, clientIp?: string) => request<AuthSession>('/auth/otp/verify', { body: { phone, code }, clientIp });
 export const getIdentityUser = (token: string) => request<IdentityUser>('/auth/me', { token });
 export const updateProfile = (token: string, input: ProfileUpdate) => request<IdentityUser>('/auth/me', { token, method: 'PUT', body: input });
 export const getIdentityPermissions = (token: string) => request<string[]>('/auth/permissions', { token });

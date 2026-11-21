@@ -23,5 +23,8 @@ menewa:
     otp:
       dev-mode: true
       secret: test-secret-for-otp-hashing
+      # Tous les tests partagent l'IP locale : limite par IP neutralisée ici, testée à part (IdentityProtectionTests).
+      max-requests-per-ip: 1000000
+      max-failures-per-ip: 1000000
   storage:
     dir: ./build/test-storage

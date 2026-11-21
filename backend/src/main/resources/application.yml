@@ -48,5 +48,10 @@ menewa:
       max-sends: 3
       send-window: PT10M
       max-attempts: 5
+      # Limite par adresse IP sur une heure. Généreuse : au Togo, beaucoup d'abonnés mobiles partagent la même IP (CGNAT).
+      max-requests-per-ip: ${OTP_MAX_REQUESTS_PER_IP:30}
+      max-failures-per-ip: ${OTP_MAX_FAILURES_PER_IP:30}
+      ip-window: PT1H
+      retention: P1D
     session:
       ttl: P14D

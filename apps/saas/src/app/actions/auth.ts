@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requestOtp, revokeIdentitySession, sendContact, verifyOtp } from '@menewa/api-client';
 import type { OtpRequestInput } from '@menewa/shared-types';
+import { clientIp } from '@/lib/client-ip';
 import { consumePendingCart } from '@/lib/pending-cart';
 import { SESSION_COOKIE } from '@/lib/session';
 
@@ -20,7 +21,7 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
     if (mode === 'register' && name.length < 2) return { step: 'phone', phone, mode, name, role, error: 'Veuillez indiquer votre nom.' };
     const input: OtpRequestInput = { phone, mode, ...(mode === 'register' ? { name, role } : {}) };
     try {
-      const result = await requestOtp(input);
+      const result = await requestOtp(input, await clientIp());
       return { step: 'code', phone, mode, name, role, devCode: result.devCode };
     } catch (error) {
       return { step: 'phone', phone, mode, name, role, error: error instanceof Error ? error.message : 'Demande de code impossible.' };
@@ -29,7 +30,7 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
 
   let destination = '/espace';
   try {
-    const session = await verifyOtp(phone, String(formData.get('code') ?? '').replace(/\D/g, ''));
+    const session = await verifyOtp(phone, String(formData.get('code') ?? '').replace(/\D/g, ''), await clientIp());
     if (['admin', 'subadmin'].includes(session.user.role)) {
       await revokeIdentitySession(session.accessToken).catch(() => undefined);
       return { step: 'phone', phone, mode, error: 'Les comptes administrateurs se connectent sur la console d’administration.' };
