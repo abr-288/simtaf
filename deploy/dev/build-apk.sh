@@ -25,10 +25,11 @@ if [ ! -f "$KEYS/key.properties" ]; then
 fi
 
 # 2. Compilation (copie de travail : les fichiers produits par le conteneur n'encombrent pas les sources).
+#    Caches persistants : dépendances Dart et Gradle, composants Android SDK installés au premier build.
 work="$OUT/src"; cp -a "$SRC" "$work"; cp "$KEYS/key.properties" "$work/android/key.properties"
 build=$(( ($(date +%s) - 1767225600) / 60 ))   # numéro de version croissant (minutes depuis 2026) : mise à jour possible
 docker run --rm --cpus=2 -v "$work":/app -v "$KEYS":/keys:ro -v menewa_flutter_cache:/root/.pub-cache -v menewa_gradle_cache:/root/.gradle \
-  -w /app "$IMAGE" sh -c "flutter pub get >/dev/null && flutter build apk --release --build-number=$build \
+  -v menewa_android_sdk:/opt/android-sdk-linux -w /app "$IMAGE" sh -c "flutter pub get >/dev/null && flutter build apk --release --build-number=$build \
     --dart-define=API_BASE_URL=https://$API_HOST/api --dart-define=API_KEY=$MOBILE_API_KEY"
 apk="$work/build/app/outputs/flutter-apk/app-release.apk"
 [ -f "$apk" ] || { echo "APK introuvable après la compilation." >&2; exit 1; }

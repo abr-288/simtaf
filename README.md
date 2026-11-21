@@ -41,6 +41,8 @@ Après toute modification d’un endpoint ou d’un libellé côté backend : `c
 
 Consultez [docs/getting-started.md](docs/getting-started.md) pour les détails, notamment l’installation Flutter et le démarrage de PostgreSQL.
 
+Déploiement sur le serveur de test (installation, mise à jour, retour arrière, APK, sauvegardes) : [deploy/dev/README.md](deploy/dev/README.md).
+
 ## Fonctionnalités reprises de Menewa Naya (`sample/`, eleos-site4)
 
 - **Backend** : modules `identity`, `platform`, `catalog`, `rewards`, `providers`, `giving`, `community` — demandes de dons, missions, preuves, paiements, litiges, Token Mena, services communautaires, campagnes partenaires, statistiques et audit. Voir [docs/architecture.md](docs/architecture.md).
