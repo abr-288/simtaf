@@ -55,4 +55,13 @@ test('un donateur s’inscrit, fait un don et l’administration l’accepte', a
   await expect(donor.getByText('Acceptée').first()).toBeVisible();
   await donor.goto(SAAS + '/espace/notifications');
   await expect(donor.getByText(`Votre demande ${ref} a été acceptée`)).toBeVisible();
+
+  // 5. Le donateur paie par Mobile Money (fournisseur simulé : aucun argent ne circule)
+  await donor.goBack();
+  await donor.reload();
+  await donor.getByRole('button', { name: /Payer .* par Mobile Money/ }).first().click();
+  await donor.getByRole('button', { name: 'Simuler : paiement confirmé' }).click();
+  await expect(donor.getByText('Confirmé', { exact: false }).first()).toBeVisible();
+  await donor.reload();
+  await expect(donor.getByText(/Reste dû : 0\sFCFA · Réf\. SIM-IN-/)).toBeVisible();
 });
