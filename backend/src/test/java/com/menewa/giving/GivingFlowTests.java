@@ -44,7 +44,7 @@ class GivingFlowTests extends ApiTestBase {
 
         postJson("/api/v1/admin/requests/" + requestId + "/decision", admin, Map.of("decision", "accept", "message", "OK")).andExpect(status().isOk());
         postJson("/api/v1/admin/requests/" + requestId + "/missions", admin, Map.of("title", "Livrer les packs", "providerId", providerId,
-                "compensationMode", "money", "providerFee", 8000)).andExpect(status().isCreated());
+                "compensationMode", "money", "providerFee", 8000, "dueDate", java.time.LocalDate.now().plusDays(7).toString())).andExpect(status().isCreated());
 
         long missionId = body(mvc.perform(get("/api/v1/missions/mine").header("Authorization", "Bearer " + provider))).get(0).get("id").asLong();
         postJson("/api/v1/missions/" + missionId + "/respond", provider, Map.of("decision", "accept")).andExpect(status().isOk());

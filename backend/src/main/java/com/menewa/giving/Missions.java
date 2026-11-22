@@ -54,12 +54,14 @@ class Missions {
         String mode = "exchange".equals(c.compensationMode()) ? "exchange" : "money";
         int fee = Math.max(c.providerFee(), 0);
         String ex = Problems.trim(c.exchangeDescription(), 600);
+        if ("money".equals(mode) && fee < 1) throw Problems.bad("Coût de la prestation requis (montant en FCFA).");
         if ("exchange".equals(mode) && ex.length() < 5) throw Problems.bad("Décrivez les engagements réciproques de l'échange de services.");
-        OffsetDateTime due = null;
-        if (c.dueDate() != null && !c.dueDate().isBlank()) {
-            try { due = LocalDate.parse(c.dueDate().trim()).atStartOfDay(ZoneId.systemDefault()).toOffsetDateTime(); }
-            catch (RuntimeException e) { throw Problems.bad("Date d'échéance invalide."); }
-        }
+        if (c.dueDate() == null || c.dueDate().isBlank()) throw Problems.bad("Date d'échéance requise.");
+        LocalDate dueDay;
+        try { dueDay = LocalDate.parse(c.dueDate().trim()); }
+        catch (RuntimeException e) { throw Problems.bad("Date d'échéance invalide."); }
+        if (dueDay.isBefore(LocalDate.now(ZoneId.systemDefault()))) throw Problems.bad("La date d'échéance ne peut pas être dans le passé.");
+        OffsetDateTime due = dueDay.atStartOfDay(ZoneId.systemDefault()).toOffsetDateTime();
         Map<String, Object> p = new HashMap<>();
         p.put("r", requestId); p.put("p", providerId); p.put("t", title); p.put("i", Problems.trimToNull(c.instructions(), 1500));
         p.put("d", due); p.put("fee", "money".equals(mode) ? fee : 0); p.put("mode", mode); p.put("ex", "exchange".equals(mode) ? ex : null);
@@ -184,7 +186,8 @@ class Missions {
 
     String complete(IdentityUser u, long id) {
         var m = own(u, id);
-        if (!Set.of("accepted", "in_progress").contains(m.status())) throw Problems.bad("Mission introuvable ou déjà terminée.");
+        if ("accepted".equals(m.status())) throw Problems.bad("Démarrez la mission avant de la terminer.");
+        if (!"in_progress".equals(m.status())) throw Problems.bad("Mission introuvable ou déjà terminée.");
         long proofs = db.jdbc.sql("SELECT COUNT(*) FROM giving_proofs WHERE mission_id = :m").param("m", id).query(Long.class).single();
         if (proofs == 0) throw Problems.bad("Déposez au moins une preuve (photo, reçu, facture ou attestation) avant de terminer.");
         db.jdbc.sql("UPDATE giving_missions SET status = 'completed', completed_at = :now, updated_at = :now, exchange_status = :es WHERE id = :id")

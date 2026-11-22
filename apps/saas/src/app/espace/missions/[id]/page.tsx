@@ -12,7 +12,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const { mission: m, request: r } = d;
   const annex = r.annexServices ?? {};
   const annexKeys = Object.keys(ANNEX_LABELS).filter((k) => annex[k as keyof typeof annex]);
-  const active = ['accepted', 'in_progress'].includes(m.status);
+  const active = m.status === 'in_progress';
   return (
     <>
       <PageHeader title={m.title} subtitle={`Échéance : ${fdate(m.dueDate)}`} actions={<StatusBadge meta={MISSION_STATUS} value={m.status} />} />
@@ -62,7 +62,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               </ActionForm>
             </Section>
           )}
-          {m.status === 'accepted' && <Section title="Suivi"><ActionForm action={startMission} submit="Démarrer la mission"><input type="hidden" name="missionId" value={id} /></ActionForm></Section>}
+          {m.status === 'accepted' && <Section title="Suivi"><ActionForm action={startMission} submit="Démarrer la mission"><input type="hidden" name="missionId" value={id} /><p className="text-xs text-slate-500">Démarrez la mission pour pouvoir déposer des preuves puis la terminer.</p></ActionForm></Section>}
           {active && (
             <>
               <Section title="Déposer une preuve">

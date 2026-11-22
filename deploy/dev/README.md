@@ -7,7 +7,7 @@ Ce kit déploie PostgreSQL, l'API (Spring), la console d'administration et l'esp
 - un mot de passe d'accès (authentification HTTP, utilisateur `menewa`) sur les deux sites web ;
 - une clé d'en-tête `X-Menewa-Key` sur l'API mobile.
 
-> **Zone de test.** Les codes OTP s'affichent à l'écran et aucun SMS n'est envoyé. N'y mettez jamais de vraies données personnelles.
+> **Zone de test.** Par défaut, les codes OTP s'affichent à l'écran et aucun SMS n'est envoyé. Pour envoyer les codes par SMS, voir [Codes OTP par SMS (Twilio)](#codes-otp-par-sms-twilio). N'y mettez jamais de vraies données personnelles.
 
 ## Sommaire
 
@@ -21,9 +21,10 @@ Ce kit déploie PostgreSQL, l'API (Spring), la console d'administration et l'esp
 8. [Sauvegardes et restauration](#sauvegardes-et-restauration)
 9. [Exploitation courante](#exploitation-courante)
 10. [Configuration (`.env`)](#configuration-env)
-11. [Protections de l'API](#protections-de-lapi)
-12. [Dépannage](#dépannage)
-13. [Retirer Menewa du serveur](#retirer-menewa-du-serveur)
+11. [Codes OTP par SMS (Twilio)](#codes-otp-par-sms-twilio)
+12. [Protections de l'API](#protections-de-lapi)
+13. [Dépannage](#dépannage)
+14. [Retirer Menewa du serveur](#retirer-menewa-du-serveur)
 
 ## Architecture
 
@@ -198,9 +199,30 @@ Généré par `deploy.sh` (droits `600`). Il n'est pas versionné et il est reco
 | `OTP_SECRET` | secret de signature des codes et des sessions |
 | `ADMIN_PHONE` | téléphone du premier administrateur (`+22890000001`) |
 | `MOBILE_API_KEY` | clé attendue dans l'en-tête `X-Menewa-Key` |
+| `OTP_DEV_MODE`, `OTP_TEST_PHONES`, `SMS_PROVIDER`, `TWILIO_*` | facultatives, voir [Codes OTP par SMS](#codes-otp-par-sms-twilio) |
 | `BACKUP_RSYNC_TARGET`, `BACKUP_DIR`, `BACKUP_KEEP_DAYS` | facultatives, voir [Sauvegardes](#sauvegardes-et-restauration) |
 
 Le Caddyfile contient un hash du mot de passe d'accès. Modifier `.access-password` ne suffit donc pas : il faut aussi remplacer le hash dans `/srv/proxy/Caddyfile` (`docker exec caddy caddy hash-password`), puis valider et recharger Caddy.
+
+## Codes OTP par SMS (Twilio)
+
+Sans réglage, le code s'affiche à l'écran (`OTP_DEV_MODE=true`). Pour l'envoyer par SMS au numéro saisi, ajoutez dans `/opt/menewa/deploy/dev/.env` :
+
+```sh
+OTP_DEV_MODE=false
+SMS_PROVIDER=twilio
+TWILIO_ACCOUNT_SID=AC...
+TWILIO_AUTH_TOKEN=...
+TWILIO_FROM=MenewaNaya            # ou un numéro Twilio +1..., ou TWILIO_MESSAGING_SERVICE_SID=MG...
+OTP_TEST_PHONES=+22890000001,+22890000002   # comptes de démo : code toujours affiché, pas de SMS
+```
+
+Ensuite, lancez `sudo docker compose up -d --no-deps backend`.
+
+- Si les identifiants Twilio manquent, l'API refuse de démarrer, plutôt que de laisser les utilisateurs sans code.
+- Les numéros de `OTP_TEST_PHONES` (comptes de démo, `seed-demo.sh`, tests e2e) gardent le code à l'écran. Laissez cette variable vide en production.
+- Si Twilio refuse un envoi, l'utilisateur voit « Le SMS n'a pas pu être envoyé » et l'erreur est journalisée (`docker logs menewa-backend`). Les SMS de notification passent par le même fournisseur.
+- Avec un compte Twilio d'essai, seuls les numéros vérifiés dans la console Twilio reçoivent les SMS. L'identifiant alphanumérique (`MenewaNaya`) n'est accepté que dans les pays qui l'autorisent : sinon, utilisez un numéro Twilio.
 
 ## Protections de l'API
 

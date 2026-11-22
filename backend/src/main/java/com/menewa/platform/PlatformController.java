@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.menewa.identity.IdentityAccess;
 import com.menewa.identity.IdentityDirectory;
 import com.menewa.identity.IdentityUser;
+import com.menewa.identity.UserRef;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
@@ -113,20 +114,58 @@ class PlatformController {
     record AuditView(Long id, Long actorId, String actorRole, String actorName, String action, String entity, String entityId,
             String details, String ip, OffsetDateTime createdAt) {}
 
+    /**
+     * Journal d'audit filtrable. {@code q} : texte libre (action, objet, n° d'objet, détails, rôle) ;
+     * {@code action} : famille d'actions (ex. « mission ») ou action exacte (« mission.create ») ;
+     * {@code actorName} : nom ou téléphone de l'auteur ; {@code from}/{@code to} : période (AAAA-MM-JJ, bornes incluses).
+     * Au plus 300 lignes, les plus récentes d'abord.
+     */
     @GetMapping("/admin/audit")
     List<AuditView> audit(@RequestHeader(value = "Authorization", required = false) String auth,
-            @RequestParam(required = false) String q, @RequestParam(required = false) Long actor) {
+            @RequestParam(required = false) String q, @RequestParam(required = false) Long actor,
+            @RequestParam(required = false) String action, @RequestParam(required = false) String actorName,
+            @RequestParam(required = false) String from, @RequestParam(required = false) String to) {
         access.requirePermission(auth, "audit.view");
         StringBuilder sql = new StringBuilder("SELECT id, actor_id, actor_role, action, entity, entity_id, details, ip, created_at FROM platform_audit_logs WHERE 1 = 1");
         var params = new java.util.HashMap<String, Object>();
-        if (q != null && !q.isBlank()) { sql.append(" AND LOWER(action) LIKE :q"); params.put("q", "%" + q.trim().toLowerCase() + "%"); }
+        if (q != null && !q.isBlank()) {
+            String term = q.trim().toLowerCase().replaceFirst("^#", "");
+            sql.append(" AND (LOWER(action) LIKE :q OR LOWER(COALESCE(entity, '')) LIKE :q OR COALESCE(entity_id, '') = :exact")
+                    .append(" OR LOWER(COALESCE(details, '')) LIKE :q OR LOWER(COALESCE(actor_role, '')) LIKE :q)");
+            params.put("q", "%" + term + "%");
+            params.put("exact", term);
+        }
+        if (action != null && !action.isBlank()) {
+            String a = action.trim().toLowerCase();
+            sql.append(a.contains(".") ? " AND LOWER(action) = :a" : " AND LOWER(action) LIKE :a");
+            params.put("a", a.contains(".") ? a : a + ".%");
+        }
         if (actor != null) { sql.append(" AND actor_id = :actor"); params.put("actor", actor); }
+        if (actorName != null && !actorName.isBlank()) {
+            String n = actorName.trim().toLowerCase();
+            List<Long> ids = directory.all().stream()
+                    .filter(x -> (x.displayName() != null && x.displayName().toLowerCase().contains(n)) || (x.phone() != null && x.phone().contains(n)))
+                    .map(UserRef::id).toList();
+            if (ids.isEmpty()) return List.of();
+            sql.append(" AND actor_id IN (:actors)");
+            params.put("actors", ids);
+        }
+        if (from != null && !from.isBlank()) { sql.append(" AND created_at >= :from"); params.put("from", day(from, "from")); }
+        if (to != null && !to.isBlank()) { sql.append(" AND created_at < :to"); params.put("to", day(to, "to").plusDays(1)); }
         sql.append(" ORDER BY id DESC LIMIT 300");
         List<AuditRow> rows = jdbc.sql(sql.toString()).params(params).query(AuditRow.class).list();
         var names = directory.findAll(rows.stream().map(AuditRow::actorId).toList());
         return rows.stream().map(a -> new AuditView(a.id(), a.actorId(), a.actorRole(),
                 a.actorId() == null ? null : (names.containsKey(a.actorId()) ? names.get(a.actorId()).displayName() : null),
                 a.action(), a.entity(), a.entityId(), a.details(), a.ip(), a.createdAt())).toList();
+    }
+
+    private static OffsetDateTime day(String raw, String field) {
+        try {
+            return java.time.LocalDate.parse(raw.trim()).atStartOfDay(java.time.ZoneId.systemDefault()).toOffsetDateTime();
+        } catch (RuntimeException e) {
+            throw Problems.bad("from".equals(field) ? "Date de début invalide." : "Date de fin invalide.");
+        }
     }
 
     /* ───────── Contact ───────── */

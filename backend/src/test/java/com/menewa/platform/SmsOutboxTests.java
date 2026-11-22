@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.menewa.ApiTestBase;
+import com.menewa.sms.SmsSender;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Map;
@@ -43,8 +44,8 @@ class SmsOutboxTests extends ApiTestBase {
     void failedSendsAreRetriedThenAbandoned() throws Exception {
         Account member = register("donor");
         notifications.notify(member.id(), "request_decision", "Décision", null, null);
-        var down = new SmsGateway(new ObjectMapper(), "", "") {
-            @Override String send(String to, String message) { return "HTTP 503"; }
+        var down = new SmsSender(new ObjectMapper(), "", "", "", "", "", "", "", "https://api.twilio.com") {
+            @Override public String send(String to, String message) { return "HTTP 503"; }
         };
         var failingOutbox = new SmsOutbox(jdbc, down);
 

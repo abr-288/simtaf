@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.scheduling.annotation.Scheduled;
+import com.menewa.sms.SmsSender;
 import org.springframework.stereotype.Component;
 
 /**
@@ -23,9 +24,9 @@ class SmsOutbox {
     private static final int BATCH = 20;
 
     private final JdbcClient jdbc;
-    private final SmsGateway gateway;
+    private final SmsSender gateway;
 
-    SmsOutbox(JdbcClient jdbc, SmsGateway gateway) {
+    SmsOutbox(JdbcClient jdbc, SmsSender gateway) {
         this.jdbc = jdbc;
         this.gateway = gateway;
     }

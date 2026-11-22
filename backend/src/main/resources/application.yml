@@ -43,6 +43,8 @@ menewa:
     bootstrap-admin-name: ${IDENTITY_BOOTSTRAP_ADMIN_NAME:Administrateur Menewa}
     otp:
       dev-mode: ${OTP_DEV_MODE:true}
+      # Numéros de démonstration (séparés par des virgules) dont le code reste affiché à l'écran, sans SMS. Vide en production.
+      test-phones: ${OTP_TEST_PHONES:}
       secret: ${OTP_SECRET:menewa-local-development-secret-change-before-production}
       ttl: PT5M
       max-sends: 3

@@ -44,7 +44,8 @@ class Evidence {
             var m = db.mission(missionId);
             boolean mine = u.getId().equals(m.providerId());
             if (!mine && !adminUploader) throw Problems.forbidden();
-            if (mine && !Set.of("accepted", "in_progress", "completed").contains(m.status())) throw Problems.bad("Mission non active.");
+            if (mine && "accepted".equals(m.status())) throw Problems.bad("Démarrez la mission avant de déposer une preuve.");
+            if (mine && !Set.of("in_progress", "completed").contains(m.status())) throw Problems.bad("Mission non active.");
             reqId = m.requestId();
         } else if (!adminUploader) {
             throw Problems.forbidden();

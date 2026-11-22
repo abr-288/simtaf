@@ -3519,8 +3519,12 @@ export interface operations {
     audit: {
         parameters: {
             query?: {
+                action?: string;
                 actor?: number;
+                actorName?: string;
+                from?: string;
                 q?: string;
+                to?: string;
             };
             header?: never;
             path?: never;

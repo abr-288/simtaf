@@ -19,6 +19,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   name_required: 'Veuillez indiquer votre nom.',
   otp_rate_limited: 'Trop de demandes de code. Réessayez dans quelques minutes.',
   otp_ip_rate_limited: 'Trop de tentatives depuis votre connexion. Réessayez dans une heure.',
+  sms_unavailable: 'Le SMS n’a pas pu être envoyé. Vérifiez le numéro ou réessayez dans quelques minutes.',
   otp_expired_or_missing: 'Code expiré ou introuvable. Demandez un nouveau code.',
   otp_attempts_exceeded: 'Trop de tentatives. Demandez un nouveau code.',
   otp_invalid: 'Code incorrect.',
@@ -117,7 +118,8 @@ export const getPublicSettings = () => request<PublicSettings>('/v1/settings/pub
 export const getSettings = (token: string) => request<Setting[]>('/v1/admin/settings', { token });
 export const saveSetting = (token: string, key: string, value: unknown) =>
   request<Ok>(`/v1/admin/settings/${encodeURIComponent(key)}`, { token, method: 'PUT', body: { value } });
-export const getAudit = (token: string, q?: string) => request<AuditEntry[]>(`/v1/admin/audit${qs({ q })}`, { token });
+export type AuditFilters = { q?: string; action?: string; actorName?: string; from?: string; to?: string };
+export const getAudit = (token: string, filters: AuditFilters = {}) => request<AuditEntry[]>(`/v1/admin/audit${qs(filters)}`, { token });
 export const sendContact = (input: { name: string; email?: string; phone?: string; subject: string; message: string }) => request<Ok>('/v1/contact', { body: input });
 export const getContactMessages = (token: string) => request<ContactMessage[]>('/v1/admin/contact-messages', { token });
 

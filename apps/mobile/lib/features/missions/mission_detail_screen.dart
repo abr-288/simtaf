@@ -24,7 +24,7 @@ class MissionDetailScreen extends ConsumerWidget {
           final m = Mission(Json.from(d['mission'] as Map));
           final r = Json.from(d['request'] as Map);
           final ben = d['beneficiary'] is Map ? Json.from(d['beneficiary'] as Map) : null;
-          final active = m.status == 'accepted' || m.status == 'in_progress';
+          final active = m.status == 'in_progress';
           return ListView(padding: const EdgeInsets.all(16), children: [
             Row(children: [
               Expanded(child: Text(m.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: brandDark))),

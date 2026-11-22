@@ -98,7 +98,7 @@ class AuthorizationTests extends ApiTestBase {
         for (var b : body(getAs("/api/v1/admin/beneficiaries", admin))) if (fullName.equals(b.get("fullName").asText())) beneficiaryId = b.get("id").asLong();
         call(HttpMethod.PUT, "/api/v1/admin/requests/" + requestId + "/beneficiary", admin, Map.of("beneficiaryId", beneficiaryId)).andExpect(status().isOk());
         postJson("/api/v1/admin/requests/" + requestId + "/missions", admin, Map.of("title", "Livraison test", "providerId", provider.id(),
-                "compensationMode", "money", "providerFee", 1000)).andExpect(status().isCreated());
+                "compensationMode", "money", "providerFee", 1000, "dueDate", java.time.LocalDate.now().plusDays(7).toString())).andExpect(status().isCreated());
         long missionId = body(getAs("/api/v1/missions/mine", provider.token())).get(0).get("id").asLong();
 
         getAs("/api/v1/missions/" + missionId, otherProvider.token()).andExpect(status().isNotFound());
@@ -109,6 +109,7 @@ class AuthorizationTests extends ApiTestBase {
         getAs("/api/v1/missions/" + missionId, provider.token()).andExpect(jsonPath("$.beneficiary").doesNotExist());
         postJson("/api/v1/missions/" + missionId + "/respond", provider.token(), Map.of("decision", "accept")).andExpect(status().isOk());
         getAs("/api/v1/missions/" + missionId, provider.token()).andExpect(jsonPath("$.beneficiary.fullName").value(fullName));
+        postJson("/api/v1/missions/" + missionId + "/start", provider.token(), null).andExpect(status().isOk());
         mvc.perform(multipart("/api/v1/proofs").file(new MockMultipartFile("file", "p.png", "image/png", PNG))
                 .param("missionId", String.valueOf(missionId)).param("type", "photo").header("Authorization", "Bearer " + provider.token()))
                 .andExpect(status().isCreated());
@@ -146,5 +147,19 @@ class AuthorizationTests extends ApiTestBase {
         // Inscription, connexion et déconnexion sont tracées au journal d'audit.
         assertThat(body(getAs("/api/v1/admin/audit?actor=" + member.id(), admin())).findValuesAsText("action"))
                 .contains("user.register", "user.login", "user.logout");
+    }
+
+    @Test
+    void auditCanBeFilteredByFamilyActorAndPeriod() throws Exception {
+        Account member = register("client");
+        String admin = admin(), today = java.time.LocalDate.now().toString();
+        var byFamily = body(getAs("/api/v1/admin/audit?action=user&actorName=" + member.phone().substring(1), admin)).findValuesAsText("action");
+        assertThat(byFamily).contains("user.register").allMatch(a -> a.startsWith("user."));
+        assertThat(body(getAs("/api/v1/admin/audit?action=user.login&actor=" + member.id(), admin)).findValuesAsText("action"))
+                .isNotEmpty().allMatch("user.login"::equals);
+        assertThat(body(getAs("/api/v1/admin/audit?actor=" + member.id() + "&from=" + today + "&to=" + today, admin))).isNotEmpty();
+        assertThat(body(getAs("/api/v1/admin/audit?actor=" + member.id() + "&to=2000-01-01", admin))).isEmpty();
+        assertThat(body(getAs("/api/v1/admin/audit?actorName=personne-inexistante-xyz", admin))).isEmpty();
+        getAs("/api/v1/admin/audit?from=hier", admin).andExpect(status().isBadRequest());
     }
 }

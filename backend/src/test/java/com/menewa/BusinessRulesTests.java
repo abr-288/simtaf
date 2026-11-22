@@ -107,21 +107,38 @@ class BusinessRulesTests extends ApiTestBase {
             Account donor = register("donor"), provider = register("provider");
             String admin = admin();
             long id = submittedRequest(donor);
+            String soon = java.time.LocalDate.now().plusDays(7).toString();
             postJson("/api/v1/admin/requests/" + id + "/missions", admin, Map.of("title", "Trop tôt", "providerId", provider.id(), "compensationMode", "money", "providerFee", 0))
                     .andExpect(status().isBadRequest());
             postJson("/api/v1/admin/requests/" + id + "/decision", admin, Map.of("decision", "accept")).andExpect(status().isOk());
             postJson("/api/v1/admin/requests/" + id + "/missions", admin, Map.of("title", "Sans prestataire", "providerId", 0, "exceptionReason", "court",
                     "compensationMode", "money", "providerFee", 0)).andExpect(status().isBadRequest());
             postJson("/api/v1/admin/requests/" + id + "/missions", admin, Map.of("title", "Remise par l'équipe", "providerId", 0,
-                    "exceptionReason", "Remise effectuée directement par l'équipe Menewa", "compensationMode", "money", "providerFee", 0))
-                    .andExpect(status().isCreated());
+                    "exceptionReason", "Remise effectuée directement par l'équipe Menewa", "compensationMode", "money", "providerFee", 1000,
+                    "dueDate", soon)).andExpect(status().isCreated());
+            // Intitulé, échéance et coût de la prestation sont obligatoires.
             postJson("/api/v1/admin/requests/" + id + "/missions", admin, Map.of("title", "Livraison", "providerId", provider.id(), "compensationMode", "money", "providerFee", 2000))
-                    .andExpect(status().isCreated());
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.detail").value("Date d'échéance requise."));
+            postJson("/api/v1/admin/requests/" + id + "/missions", admin, Map.of("title", "Livraison", "providerId", provider.id(), "compensationMode", "money", "providerFee", 2000,
+                    "dueDate", java.time.LocalDate.now().minusDays(1).toString())).andExpect(status().isBadRequest());
+            postJson("/api/v1/admin/requests/" + id + "/missions", admin, Map.of("title", "Livraison", "providerId", provider.id(), "compensationMode", "money", "providerFee", 0,
+                    "dueDate", soon)).andExpect(status().isBadRequest()).andExpect(jsonPath("$.detail", containsString("Coût de la prestation")));
+            postJson("/api/v1/admin/requests/" + id + "/missions", admin, Map.of("title", "", "providerId", provider.id(), "compensationMode", "money", "providerFee", 2000,
+                    "dueDate", soon)).andExpect(status().isBadRequest());
+            postJson("/api/v1/admin/requests/" + id + "/missions", admin, Map.of("title", "Livraison", "providerId", provider.id(), "compensationMode", "money", "providerFee", 2000,
+                    "dueDate", soon)).andExpect(status().isCreated());
             long missionId = body(getAs("/api/v1/missions/mine", provider.token())).get(0).get("id").asLong();
             postJson("/api/v1/missions/" + missionId + "/respond", provider.token(), Map.of("decision", "refuse", "reason", "non"))
                     .andExpect(status().isBadRequest()).andExpect(jsonPath("$.detail").value("Un motif de refus est obligatoire."));
             postJson("/api/v1/missions/" + missionId + "/respond", provider.token(), Map.of("decision", "accept")).andExpect(status().isOk());
             getAs("/api/v1/requests/" + id, donor.token()).andExpect(jsonPath("$.request.status").value("in_progress"));
+            // Pas de preuve ni de clôture sans démarrage.
+            postJson("/api/v1/missions/" + missionId + "/complete", provider.token(), null)
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.detail").value("Démarrez la mission avant de la terminer."));
+            mvc.perform(multipart("/api/v1/proofs").file(new MockMultipartFile("file", "remise.png", "image/png", new byte[] {(byte) 0x89, 'P', 'N', 'G', 13, 10, 26, 10}))
+                            .param("missionId", String.valueOf(missionId)).param("type", "photo").header("Authorization", "Bearer " + provider.token()))
+                    .andExpect(status().isBadRequest()).andExpect(jsonPath("$.detail", containsString("Démarrez la mission")));
+            postJson("/api/v1/missions/" + missionId + "/start", provider.token(), null).andExpect(status().isOk());
             // Le type réel du fichier est contrôlé (signature), pas son extension.
             mvc.perform(multipart("/api/v1/proofs").file(new MockMultipartFile("file", "faux.png", "image/png", "pas une image".getBytes()))
                             .param("missionId", String.valueOf(missionId)).param("type", "photo").header("Authorization", "Bearer " + provider.token()))

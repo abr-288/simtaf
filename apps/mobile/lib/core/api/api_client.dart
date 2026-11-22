@@ -22,6 +22,7 @@ const _errorMessages = <String, String>{
   'name_required': 'Veuillez indiquer votre nom.',
   'otp_rate_limited': 'Trop de demandes de code. Réessayez dans quelques minutes.',
   'otp_ip_rate_limited': 'Trop de tentatives depuis votre connexion. Réessayez dans une heure.',
+  'sms_unavailable': "Le SMS n'a pas pu être envoyé. Vérifiez le numéro ou réessayez dans quelques minutes.",
   'otp_expired_or_missing': 'Code expiré ou introuvable. Demandez un nouveau code.',
   'otp_attempts_exceeded': 'Trop de tentatives. Demandez un nouveau code.',
   'otp_invalid': 'Code incorrect.',

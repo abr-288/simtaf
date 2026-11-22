@@ -77,15 +77,16 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 <summary className="btn btn-yellow btn-sm cursor-pointer">+ Créer une mission</summary>
                 <ActionForm action={createMission} submit="Créer la mission" className="mt-3 space-y-2">
                   <input type="hidden" name="requestId" value={id} />
-                  <input name="title" className="input" placeholder="Intitulé de la mission" required />
+                  <input name="title" className="input" placeholder="Intitulé de la mission *" required minLength={4} />
                   <textarea name="instructions" rows={2} className="input" placeholder="Instructions d’exécution" />
                   <select name="providerId" className="input"><option value="0">— Aucun (exception administrative documentée) —</option>{provs.map((p) => <option key={p.id} value={p.id}>{p.name} ({PROVIDER_CATEGORIES[p.category ?? 'autre']})</option>)}</select>
                   <input name="exceptionReason" className="input" placeholder="Si aucun prestataire : justification de l’exception" />
                   <div className="grid gap-2 sm:grid-cols-3">
-                    <input name="dueDate" type="date" className="input" aria-label="Échéance" />
-                    <select name="compensationMode" className="input"><option value="money">Paiement monétaire</option><option value="exchange">Échange de services</option></select>
-                    <input name="providerFee" type="number" min={0} className="input" placeholder="Coût prestataire (FCFA)" />
+                    <label className="text-xs text-slate-600">Échéance *<input name="dueDate" type="date" className="input" min={new Date().toISOString().slice(0, 10)} required /></label>
+                    <label className="text-xs text-slate-600">Rémunération<select name="compensationMode" className="input"><option value="money">Paiement monétaire</option><option value="exchange">Échange de services</option></select></label>
+                    <label className="text-xs text-slate-600">Coût de la prestation (FCFA) *<input name="providerFee" type="number" min={0} className="input" placeholder="ex. 5000" required /></label>
                   </div>
+                  <p className="text-xs text-slate-500">* obligatoire. En paiement monétaire, le coût doit être supérieur à 0 ; en échange de services, mettez 0 et décrivez les engagements.</p>
                   <input name="exchangeDescription" className="input" placeholder="Si échange : engagements réciproques" />
                 </ActionForm>
               </details>

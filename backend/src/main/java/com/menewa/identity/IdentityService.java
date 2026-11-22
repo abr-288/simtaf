@@ -7,7 +7,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +42,8 @@ class IdentityService {
     private final int maxRequestsPerIp;
     private final int maxFailuresPerIp;
     private final Duration ipWindow;
+    /** Numéros de démonstration : code affiché à l'écran, aucun SMS. Toujours vide en production. */
+    private final Set<String> testPhones;
 
     IdentityService(IdentityUserRepository users, OtpChallengeRepository challenges,
             IdentitySessionRepository sessions, OtpDelivery delivery, ApplicationEventPublisher events,
@@ -53,7 +57,8 @@ class IdentityService {
             IpRateLimiter ipLimiter,
             @Value("${menewa.identity.otp.max-requests-per-ip:30}") int maxRequestsPerIp,
             @Value("${menewa.identity.otp.max-failures-per-ip:30}") int maxFailuresPerIp,
-            @Value("${menewa.identity.otp.ip-window:PT1H}") Duration ipWindow) {
+            @Value("${menewa.identity.otp.ip-window:PT1H}") Duration ipWindow,
+            @Value("${menewa.identity.otp.test-phones:}") String testPhones) {
         this.users = users;
         this.challenges = challenges;
         this.sessions = sessions;
@@ -70,6 +75,8 @@ class IdentityService {
         this.maxRequestsPerIp = maxRequestsPerIp;
         this.maxFailuresPerIp = maxFailuresPerIp;
         this.ipWindow = ipWindow;
+        this.testPhones = Arrays.stream(testPhones.split(",")).map(String::trim).filter(t -> !t.isEmpty())
+                .map(IdentityService::normalizePhone).collect(Collectors.toUnmodifiableSet());
     }
 
     @Transactional
@@ -92,8 +99,10 @@ class IdentityService {
         String code = String.format("%06d", RANDOM.nextInt(1_000_000));
         challenges.save(new OtpChallenge(phone, hash(phone, code), register ? request.name().trim() : null,
                 register ? role : null, now.plus(otpTtl)));
-        delivery.send(phone, code);
-        return OtpResponse.success(devMode ? code : null);
+        // Hors démonstration, le code part uniquement par SMS au numéro identifié et n'est jamais renvoyé.
+        boolean shown = devMode || testPhones.contains(phone);
+        if (devMode || !shown) delivery.send(phone, code); // en mode développement, l'envoi est une simple journalisation
+        return OtpResponse.success(shown ? code : null);
     }
 
     @Transactional(noRollbackFor = ResponseStatusException.class)

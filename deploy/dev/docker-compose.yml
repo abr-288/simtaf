@@ -29,7 +29,14 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/menewa
       DATABASE_USERNAME: menewa
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
-      OTP_DEV_MODE: "true"
+      # Codes OTP : "true" = affichés à l'écran (zone de test). "false" = envoyés par SMS (Twilio, voir README).
+      OTP_DEV_MODE: ${OTP_DEV_MODE:-true}
+      OTP_TEST_PHONES: ${OTP_TEST_PHONES:-}
+      SMS_PROVIDER: ${SMS_PROVIDER:-}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_FROM: ${TWILIO_FROM:-}
+      TWILIO_MESSAGING_SERVICE_SID: ${TWILIO_MESSAGING_SERVICE_SID:-}
       OTP_SECRET: ${OTP_SECRET:?définir OTP_SECRET}
       IDENTITY_BOOTSTRAP_ADMIN_PHONE: ${ADMIN_PHONE:-+22890000001}
       CATALOG_SEED_DEMO_DATA: "false" # démo identique à Menewa Naya : backend/scripts/seed-demo.sql
