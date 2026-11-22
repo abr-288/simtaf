@@ -6,7 +6,7 @@ import type {
   IdentityUser, ListingView, ManagedCatalogItem, Mission, MyProvider, MyRewards, Ok, OtpRequestInput, OtpRequestResult, PartnerDashboard,
   Payment, ProfileUpdate, PublicListing, PublicPartner, ProviderCard, ProviderDashboard, ProviderMissionDetail, ProviderOption, PublicSettings, ReceivedGift,
   RewardAccount, RewardsOverview, SmsOverview, SaveCatalogItemInput, ServiceOrderDetail, ServiceOrderView, Setting, StatFilters, Stats, Target,
-  TargetUsage, UserOption,
+  TargetUsage, UserOption, PaymentTransaction, PaymentTransactionView, OnlinePaymentConfig,
 } from '@menewa/shared-types';
 
 const apiBaseUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/api';
@@ -141,6 +141,13 @@ export const openDispute = (token: string, requestId: number, subject: string, d
 export const getMyPayments = (token: string) => request<Payment[]>('/v1/payments/mine', { token });
 /** `form` : method, reference, receipt (fichier facultatif). */
 export const declarePayment = (token: string, id: number, form: FormData) => request<Ok>(`/v1/payments/${id}/declare`, { token, form });
+/* Paiement en ligne Mobile Money (fournisseur simulé tant qu'aucun agrégateur n'est branché). */
+export const getOnlinePaymentConfig = () => request<OnlinePaymentConfig>('/v1/payments/online/config');
+export const payOnline = (token: string, id: number, phone: string, operator: string) =>
+  request<PaymentTransactionView>(`/v1/payments/${id}/pay`, { token, body: { phone, operator } });
+export const getPaymentTransactions = (token: string, id: number) => request<PaymentTransaction[]>(`/v1/payments/${id}/transactions`, { token });
+export const simulatePaymentTransaction = (token: string, txId: number, outcome: 'success' | 'failure') =>
+  request<PaymentTransactionView>(`/v1/payments/transactions/${txId}/simulate`, { token, body: { outcome } });
 export const getDispute = (token: string, id: number) => request<DisputeDetail>(`/v1/disputes/${id}`, { token });
 /** `form` : body, attachment (fichier facultatif). */
 export const postDisputeMessage = (token: string, id: number, form: FormData) => request<Ok>(`/v1/disputes/${id}/messages`, { token, form });
@@ -229,6 +236,9 @@ export const getAdminProofs = (token: string) => request<AdminProof[]>('/v1/admi
 export const reviewProof = (token: string, id: number, decision: 'validate' | 'reject', reason?: string, hide = false) =>
   request<Ok>(`/v1/admin/proofs/${id}/review`, { token, body: { decision, reason, hide } });
 export const getAdminPayments = (token: string, status?: string, direction?: string) => request<AdminPayments>(`/v1/admin/payments${qs({ status, direction })}`, { token });
+export const payoutPayment = (token: string, id: number, operator: string, phone?: string) =>
+  request<PaymentTransactionView>(`/v1/admin/payments/${id}/payout`, { token, body: { operator, phone } });
+export const getPaymentTransactionsAdmin = (token: string) => request<PaymentTransaction[]>('/v1/admin/payment-transactions', { token });
 /** `form` : status, amountValidated, amountPaid, reference, note, exchangeStatus, receipt. */
 export const updatePayment = (token: string, id: number, form: FormData) => request<Ok>(`/v1/admin/payments/${id}`, { token, method: 'PUT', form });
 export const getFinances = (token: string) => request<Finances>('/v1/admin/finances', { token });

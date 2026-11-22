@@ -1,20 +1,25 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ApiRequestError, getMyRequest } from '@menewa/api-client';
+import { ApiRequestError, getMyRequest, getOnlinePaymentConfig, getPaymentTransactions } from '@menewa/api-client';
 import {
   ActionForm, ANNEX_LABELS, DISPUTE_STATUS, Empty, fcfa, fdate, fdatetime, KIND_LABEL, MISSION_STATUS, PageHeader, PAY_METHODS, PAYMENT_MODE,
   PAYMENT_STATUS, PROOF_TYPES, RECURRENCE, REQUEST_STATUS, RequestTracker, Section, StatusBadge,
 } from '@menewa/ui';
+import { OnlinePayment } from '@/components/OnlinePayment';
 import { requireRole } from '@/lib/session';
 import { answerInfoRequest, cancelRequest, declarePayment, openDispute, rateMission } from '../../actions';
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
-  const { token } = await requireRole('donor', 'client');
+  const { token, user } = await requireRole('donor', 'client');
   const id = parseInt((await params).id, 10);
   if (!Number.isFinite(id)) notFound();
   // Le donateur ne consulte que ses propres demandes (contrôlé par l'API).
   const d = await getMyRequest(token, id).catch((e) => { if (e instanceof ApiRequestError && e.status === 404) notFound(); throw e; });
   const r = d.request;
+  const [payConfig, txs] = await Promise.all([
+    getOnlinePaymentConfig(),
+    Promise.all(d.payments.map((p) => (p.mode === 'money' ? getPaymentTransactions(token, p.id) : Promise.resolve([])))),
+  ]);
   const annex = r.annexServices ?? {};
   const annexKeys = Object.keys(ANNEX_LABELS).filter((k) => annex[k as keyof typeof annex]);
 
@@ -73,17 +78,20 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           <Section title="Paiements">
             {d.payments.length === 0 ? <Empty>Aucun paiement.</Empty> : (
               <div className="space-y-3">
-                {d.payments.map((p) => (
+                {d.payments.map((p, i) => (
                   <div key={p.id} className="rounded-xl border border-slate-200 p-3 text-sm">
                     <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold">{p.note} — {fcfa(p.amountPlanned)}</span><StatusBadge meta={PAYMENT_STATUS} value={p.status} /></div>
                     <p className="text-xs text-slate-500">Échéance : {fdate(p.dueDate)} · Payé : {fcfa(p.amountPaid)} · Reste dû : {fcfa(p.remaining)}{p.reference ? ` · Réf. ${p.reference}` : ''}{p.method ? ` · ${PAY_METHODS[p.method]}` : ''}</p>
+                    <OnlinePayment payment={p} transactions={txs[i]} config={payConfig} phone={user.phone} />
                     {['planned', 'declared'].includes(p.status) && (
+                      <details className="mt-2"><summary className="cursor-pointer text-xs text-brand underline">Déjà payé autrement (virement, espèces…) ? Déclarer mon paiement</summary>
                       <ActionForm action={declarePayment} submit={p.status === 'declared' ? 'Mettre à jour' : 'Déclarer mon paiement'} className="mt-3 grid gap-2 sm:grid-cols-2" btnClass="btn btn-yellow btn-sm">
                         <input type="hidden" name="paymentId" value={p.id} />
                         <select name="method" className="input" defaultValue={p.method ?? 'mobile_money'} aria-label="Moyen de paiement">{['mobile_money', 'card', 'bank', 'cash'].map((m) => <option key={m} value={m}>{PAY_METHODS[m]}</option>)}</select>
                         <input name="reference" defaultValue={p.reference ?? ''} className="input" placeholder="Référence de transaction" />
                         <input name="receipt" type="file" accept="image/*,application/pdf" className="input sm:col-span-2" aria-label="Reçu" />
                       </ActionForm>
+                      </details>
                     )}
                   </div>
                 ))}

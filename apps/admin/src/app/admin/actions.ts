@@ -77,6 +77,11 @@ export const uploadProof = async (_p: ActionState, fd: FormData) =>
   });
 
 /* ───────── Paiements ───────── */
+/* Reversement Mobile Money au prestataire (fournisseur simulé en zone de test). */
+export const payoutPayment = async (_p: ActionState, fd: FormData) =>
+  run(async (t) => (await api.payoutPayment(t, int(fd, 'paymentId'), str(fd, 'operator', 20), str(fd, 'phone', 30) || undefined)).message ?? 'Reversement lancé.');
+export const simulatePayment = async (_p: ActionState, fd: FormData) =>
+  run(async (t) => (await api.simulatePaymentTransaction(t, int(fd, 'transactionId'), str(fd, 'outcome') === 'success' ? 'success' : 'failure')).message ?? 'Enregistré.');
 export const updatePayment = async (_p: ActionState, fd: FormData) =>
   run((t) => {
     const form = new FormData();

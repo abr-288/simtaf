@@ -34,6 +34,10 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 menewa:
+  # Paiement en ligne Mobile Money. « simulated » : aucun argent ne circule, l'issue se choisit à l'écran (zone de test).
+  payments:
+    provider: ${PAYMENT_PROVIDER:simulated}
+    webhook-secret: ${PAYMENT_WEBHOOK_SECRET:menewa-local-payment-webhook-secret}
   storage:
     dir: ${STORAGE_DIR:./storage}
   catalog:

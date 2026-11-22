@@ -22,9 +22,10 @@ Ce kit déploie PostgreSQL, l'API (Spring), la console d'administration et l'esp
 9. [Exploitation courante](#exploitation-courante)
 10. [Configuration (`.env`)](#configuration-env)
 11. [Codes OTP par SMS (Twilio)](#codes-otp-par-sms-twilio)
-12. [Protections de l'API](#protections-de-lapi)
-13. [Dépannage](#dépannage)
-14. [Retirer Menewa du serveur](#retirer-menewa-du-serveur)
+12. [Paiement Mobile Money (simulé)](#paiement-mobile-money-simulé)
+13. [Protections de l'API](#protections-de-lapi)
+14. [Dépannage](#dépannage)
+15. [Retirer Menewa du serveur](#retirer-menewa-du-serveur)
 
 ## Architecture
 
@@ -223,6 +224,23 @@ Ensuite, lancez `sudo docker compose up -d --no-deps backend`.
 - Les numéros de `OTP_TEST_PHONES` (comptes de démo, `seed-demo.sh`, tests e2e) gardent le code à l'écran. Laissez cette variable vide en production.
 - Si Twilio refuse un envoi, l'utilisateur voit « Le SMS n'a pas pu être envoyé » et l'erreur est journalisée (`docker logs menewa-backend`). Les SMS de notification passent par le même fournisseur.
 - Avec un compte Twilio d'essai, seuls les numéros vérifiés dans la console Twilio reçoivent les SMS. L'identifiant alphanumérique (`MenewaNaya`) n'est accepté que dans les pays qui l'autorisent : sinon, utilisez un numéro Twilio.
+
+## Paiement Mobile Money (simulé)
+
+Aucun agrégateur n'est branché : le fournisseur `simulated` (`PAYMENT_PROVIDER=simulated`, par défaut) **ne fait circuler aucun argent**. Il suit pourtant le même parcours qu'un vrai agrégateur :
+
+1. **Encaissement.** Le client clique sur « Payer par Mobile Money » (web ou mobile), puis choisit l'opérateur et le numéro. Le serveur fixe le montant (le reste dû) et crée une transaction « en attente ».
+2. **Confirmation.** En réel, le client confirme sur son téléphone. Ici, des boutons de test « Simuler : confirmé » et « Simuler : échec » jouent ce rôle. L'issue repasse par le webhook signé (`POST /api/v1/payments/webhook`), et le paiement passe à « payé » ou « partiel » seulement après relecture du statut chez le fournisseur.
+3. **Reversement.** Quand la rémunération d'un prestataire est validée (mission validée), **Admin → Paiements** propose « Verser … par Mobile Money » vers le numéro du prestataire. L'issue se simule de la même façon.
+
+Garde-fous :
+- une seule transaction en attente par paiement ;
+- une confirmation reçue deux fois n'est appliquée qu'une fois ;
+- un webhook mal signé est refusé (401) ;
+- le prestataire ne peut pas confirmer lui-même son reversement ;
+- la déclaration manuelle (virement, espèces) reste possible.
+
+Brancher un agrégateur réel revient à écrire une implémentation de `PaymentGateway` (backend, module `giving`). Il faudra aussi laisser passer le webhook du fournisseur dans Caddy, car l'API publique exige la clé `X-Menewa-Key`.
 
 ## Protections de l'API
 

@@ -514,6 +514,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/payment-transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["recent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/payments": {
         parameters: {
             query?: never;
@@ -540,6 +556,22 @@ export interface paths {
         get?: never;
         put: operations["updatePayment"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/payments/{id}/payout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["payout"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1538,6 +1570,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/payments/{id}/pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["pay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/{id}/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["transactions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/payments/mine": {
         parameters: {
             query?: never;
@@ -1548,6 +1612,54 @@ export interface paths {
         get: operations["myPayments"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/online/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["config"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/transactions/{txId}/simulate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["simulate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["webhook"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2691,6 +2803,11 @@ export interface components {
             title: string | null;
             type: string | null;
         };
+        OnlinePaymentConfig: {
+            operators: string[];
+            provider: string | null;
+            simulated: boolean;
+        };
         Order: {
             /** Format: int32 */
             agreedPrice: number | null;
@@ -2792,6 +2909,34 @@ export interface components {
             status: string | null;
             /** Format: int64 */
             userId: number | null;
+        };
+        PaymentTransaction: {
+            /** Format: int32 */
+            amount: number;
+            /** Format: date-time */
+            createdAt: string | null;
+            direction: string | null;
+            failureReason: string | null;
+            /** Format: int64 */
+            id: number | null;
+            operator: string | null;
+            /** Format: int64 */
+            paymentId: number | null;
+            phone: string | null;
+            provider: string | null;
+            providerRef: string | null;
+            /** Format: date-time */
+            settledAt: string | null;
+            status: string | null;
+        };
+        PaymentTransactionView: {
+            message: string | null;
+            simulated: boolean;
+            transaction: components["schemas"]["PaymentTransaction"] | null;
+        };
+        PayRequest: {
+            operator: string | null;
+            phone: string | null;
         };
         PostMessage: {
             body: string | null;
@@ -3125,6 +3270,9 @@ export interface components {
             /** Format: int64 */
             updatedBy: number | null;
             value: components["schemas"]["JsonNode"] | null;
+        };
+        SimulateRequest: {
+            outcome: string | null;
         };
         SmsOverview: {
             recent: components["schemas"]["SmsRow"][];
@@ -4117,6 +4265,26 @@ export interface operations {
             };
         };
     };
+    recent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PaymentTransaction"][];
+                };
+            };
+        };
+    };
     payments: {
         parameters: {
             query?: {
@@ -4174,6 +4342,32 @@ export interface operations {
                     "*/*": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    payout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PaymentTransactionView"];
                 };
             };
         };
@@ -5718,6 +5912,54 @@ export interface operations {
             };
         };
     };
+    pay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PaymentTransactionView"];
+                };
+            };
+        };
+    };
+    transactions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PaymentTransaction"][];
+                };
+            };
+        };
+    };
     myPayments: {
         parameters: {
             query?: never;
@@ -5735,6 +5977,76 @@ export interface operations {
                 content: {
                     "*/*": components["schemas"]["PaymentRow"][];
                 };
+            };
+        };
+    };
+    config: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["OnlinePaymentConfig"];
+                };
+            };
+        };
+    };
+    simulate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                txId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimulateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PaymentTransactionView"];
+                };
+            };
+        };
+    };
+    webhook: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Menewa-Signature"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": string;
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

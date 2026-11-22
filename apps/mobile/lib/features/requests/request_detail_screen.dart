@@ -7,6 +7,7 @@ import '../../core/models.dart';
 import '../../core/session.dart';
 import '../../core/widgets.dart';
 import '../disputes/dispute_screen.dart';
+import '../payments/online_payment.dart';
 
 const _steps = ['submitted', 'accepted', 'in_progress', 'completed', 'closed'];
 const _reached = {'submitted': 0, 'info_requested': 0, 'accepted': 1, 'in_progress': 2, 'completed': 3, 'closed': 4};
@@ -267,10 +268,13 @@ class _PaymentTile extends ConsumerWidget {
         const SizedBox(height: 4),
         Text('Échéance : ${fdate(asStr(p['dueDate']))} · Payé : ${fcfa(asInt(p['amountPaid']))} · Reste dû : ${fcfa(asInt(p['remaining']))}',
             style: const TextStyle(fontSize: 12, color: Colors.black54)),
+        OnlinePaymentPanel(key: ValueKey('pay-${p['id']}'), payment: p, onChanged: onChanged),
         if (canDeclare)
           Align(
             alignment: Alignment.centerRight,
-            child: TextButton(onPressed: () => _declare(context, ref), child: Text(status == 'declared' ? 'Mettre à jour' : 'Déclarer mon paiement')),
+            child: TextButton(
+                onPressed: () => _declare(context, ref),
+                child: Text(status == 'declared' ? 'Mettre à jour ma déclaration' : 'Déjà payé autrement ? Déclarer')),
           ),
       ]),
     );

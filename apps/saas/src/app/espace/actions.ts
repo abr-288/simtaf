@@ -108,6 +108,13 @@ export const declarePayment = async (_p: ActionState, fd: FormData) =>
     return api.declarePayment(t, int(fd, 'paymentId'), form);
   });
 
+/* Paiement Mobile Money en ligne (fournisseur simulé en zone de test). */
+export const payOnline = async (_p: ActionState, fd: FormData) =>
+  run(async (t) => (await api.payOnline(t, int(fd, 'paymentId'), str(fd, 'phone', 30), str(fd, 'operator', 20))).message
+    ?? 'Confirmez le paiement sur votre téléphone.');
+export const simulatePayment = async (_p: ActionState, fd: FormData) =>
+  run(async (t) => (await api.simulatePaymentTransaction(t, int(fd, 'transactionId'), str(fd, 'outcome') === 'success' ? 'success' : 'failure')).message ?? 'Enregistré.');
+
 /* ───────── Prestataire ───────── */
 export const respondMission = async (_p: ActionState, fd: FormData) =>
   run((t) => api.respondMission(t, int(fd, 'missionId'), str(fd, 'decision') === 'refuse' ? 'refuse' : 'accept', str(fd, 'reason', 600)));

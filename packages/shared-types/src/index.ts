@@ -77,6 +77,13 @@ export type Payment = {
   status: string; reference: string | null; receiptName: string | null; exchangeDescription: string | null; exchangeStatus: string | null;
   dueDate: string | null; note: string | null; createdAt: string; paidAt: string | null; hasReceipt: boolean; remaining: number;
 };
+/** Transaction Mobile Money (encaissement « in » ou reversement « out ») ; « pending » jusqu'à confirmation du fournisseur. */
+export type PaymentTransaction = {
+  id: number; paymentId: number; direction: 'in' | 'out'; provider: string; providerRef: string | null; amount: number; phone: string;
+  operator: string; status: 'pending' | 'succeeded' | 'failed'; failureReason: string | null; createdAt: string; settledAt: string | null;
+};
+export type PaymentTransactionView = { transaction: PaymentTransaction; simulated: boolean; message: string | null };
+export type OnlinePaymentConfig = { provider: string; simulated: boolean; operators: string[] };
 export type Dispute = {
   id: number; ref: string; requestId: number | null; missionId: number | null; openedBy: number; againstUserId: number | null; subject: string;
   description: string | null; status: string; responsibleId: number | null; decision: string | null; createdAt: string; closedAt: string | null;

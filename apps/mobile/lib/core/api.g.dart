@@ -1476,6 +1476,20 @@ class ApiNotificationView {
   final String? type;
 }
 
+class ApiOnlinePaymentConfig {
+  const ApiOnlinePaymentConfig({required this.operators, this.provider, required this.simulated});
+
+  factory ApiOnlinePaymentConfig.fromJson(Map<String, dynamic> j) => ApiOnlinePaymentConfig(
+        operators: _list(j['operators'], (e) => _str(e)),
+        provider: j['provider']?.toString(),
+        simulated: j['simulated'] == true,
+      );
+
+  final List<String> operators;
+  final String? provider;
+  final bool simulated;
+}
+
 class ApiOrder {
   const ApiOrder({this.agreedPrice, this.clientId, this.compensationMode, this.createdAt, this.description, this.exchangeDescription, this.id, this.offerId, required this.proposedPrice, this.providerId, this.status, this.title, this.updatedAt, this.zone});
 
@@ -1660,6 +1674,64 @@ class ApiPaymentRow {
   final int? serviceOrderId;
   final String? status;
   final int? userId;
+}
+
+class ApiPaymentTransaction {
+  const ApiPaymentTransaction({required this.amount, this.createdAt, this.direction, this.failureReason, this.id, this.operator, this.paymentId, this.phone, this.provider, this.providerRef, this.settledAt, this.status});
+
+  factory ApiPaymentTransaction.fromJson(Map<String, dynamic> j) => ApiPaymentTransaction(
+        amount: _int(j['amount']),
+        createdAt: j['createdAt']?.toString(),
+        direction: j['direction']?.toString(),
+        failureReason: j['failureReason']?.toString(),
+        id: j['id'] == null ? null : _int(j['id']),
+        operator: j['operator']?.toString(),
+        paymentId: j['paymentId'] == null ? null : _int(j['paymentId']),
+        phone: j['phone']?.toString(),
+        provider: j['provider']?.toString(),
+        providerRef: j['providerRef']?.toString(),
+        settledAt: j['settledAt']?.toString(),
+        status: j['status']?.toString(),
+      );
+
+  final int amount;
+  final String? createdAt;
+  final String? direction;
+  final String? failureReason;
+  final int? id;
+  final String? operator;
+  final int? paymentId;
+  final String? phone;
+  final String? provider;
+  final String? providerRef;
+  final String? settledAt;
+  final String? status;
+}
+
+class ApiPaymentTransactionView {
+  const ApiPaymentTransactionView({this.message, required this.simulated, this.transaction});
+
+  factory ApiPaymentTransactionView.fromJson(Map<String, dynamic> j) => ApiPaymentTransactionView(
+        message: j['message']?.toString(),
+        simulated: j['simulated'] == true,
+        transaction: j['transaction'] is Map ? ApiPaymentTransaction.fromJson(_map(j['transaction'])) : null,
+      );
+
+  final String? message;
+  final bool simulated;
+  final ApiPaymentTransaction? transaction;
+}
+
+class ApiPayRequest {
+  const ApiPayRequest({this.operator, this.phone});
+
+  factory ApiPayRequest.fromJson(Map<String, dynamic> j) => ApiPayRequest(
+        operator: j['operator']?.toString(),
+        phone: j['phone']?.toString(),
+      );
+
+  final String? operator;
+  final String? phone;
 }
 
 class ApiPostMessage {
@@ -2320,6 +2392,16 @@ class ApiSettingView {
   final String? updatedAt;
   final int? updatedBy;
   final ApiJsonNode? value;
+}
+
+class ApiSimulateRequest {
+  const ApiSimulateRequest({this.outcome});
+
+  factory ApiSimulateRequest.fromJson(Map<String, dynamic> j) => ApiSimulateRequest(
+        outcome: j['outcome']?.toString(),
+      );
+
+  final String? outcome;
 }
 
 class ApiSmsOverview {

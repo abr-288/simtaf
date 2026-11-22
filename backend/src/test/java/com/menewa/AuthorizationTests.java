@@ -25,6 +25,7 @@ class AuthorizationTests extends ApiTestBase {
                 Arguments.of("/api/v1/admin/missions", "missions.manage"),
                 Arguments.of("/api/v1/admin/proofs", "proofs.review"),
                 Arguments.of("/api/v1/admin/payments", "payments.manage"),
+                Arguments.of("/api/v1/admin/payment-transactions", "payments.manage"),
                 Arguments.of("/api/v1/admin/finances", "finances.view"),
                 Arguments.of("/api/v1/admin/disputes", "disputes.manage"),
                 Arguments.of("/api/v1/admin/users", "users.manage"),

@@ -33,6 +33,9 @@ services:
       OTP_DEV_MODE: ${OTP_DEV_MODE:-true}
       OTP_TEST_PHONES: ${OTP_TEST_PHONES:-}
       SMS_PROVIDER: ${SMS_PROVIDER:-}
+      # Paiement Mobile Money : « simulated » (zone de test, aucun argent ne circule) tant qu'aucun agrégateur n'est branché.
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-simulated}
+      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:-}
       TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
       TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
       TWILIO_FROM: ${TWILIO_FROM:-}

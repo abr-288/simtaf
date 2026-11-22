@@ -2372,6 +2372,25 @@
         "required" : [ "body", "createdAt", "id", "link", "readAt", "title", "type" ],
         "type" : "object"
       },
+      "OnlinePaymentConfig" : {
+        "properties" : {
+          "operators" : {
+            "items" : {
+              "type" : "string"
+            },
+            "type" : "array"
+          },
+          "provider" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "simulated" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "operators", "provider", "simulated" ],
+        "type" : "object"
+      },
       "Order" : {
         "properties" : {
           "agreedPrice" : {
@@ -2585,6 +2604,20 @@
         "required" : [ "pending", "published", "raised", "total" ],
         "type" : "object"
       },
+      "PayRequest" : {
+        "properties" : {
+          "operator" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "phone" : {
+            "nullable" : true,
+            "type" : "string"
+          }
+        },
+        "required" : [ "operator", "phone" ],
+        "type" : "object"
+      },
       "PaymentRow" : {
         "properties" : {
           "amountPaid" : {
@@ -2694,6 +2727,83 @@
           }
         },
         "required" : [ "amountPaid", "amountPlanned", "amountValidated", "createdAt", "direction", "dueDate", "exchangeDescription", "exchangeStatus", "hasReceipt", "id", "installmentId", "kind", "method", "missionId", "mode", "note", "paidAt", "receiptName", "reference", "remaining", "requestId", "serviceOrderId", "status", "userId" ],
+        "type" : "object"
+      },
+      "PaymentTransaction" : {
+        "properties" : {
+          "amount" : {
+            "format" : "int32",
+            "type" : "integer"
+          },
+          "createdAt" : {
+            "format" : "date-time",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "direction" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "failureReason" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "id" : {
+            "format" : "int64",
+            "nullable" : true,
+            "type" : "integer"
+          },
+          "operator" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "paymentId" : {
+            "format" : "int64",
+            "nullable" : true,
+            "type" : "integer"
+          },
+          "phone" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "provider" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "providerRef" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "settledAt" : {
+            "format" : "date-time",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "status" : {
+            "nullable" : true,
+            "type" : "string"
+          }
+        },
+        "required" : [ "amount", "createdAt", "direction", "failureReason", "id", "operator", "paymentId", "phone", "provider", "providerRef", "settledAt", "status" ],
+        "type" : "object"
+      },
+      "PaymentTransactionView" : {
+        "properties" : {
+          "message" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "simulated" : {
+            "type" : "boolean"
+          },
+          "transaction" : {
+            "allOf" : [ {
+              "$ref" : "#/components/schemas/PaymentTransaction"
+            } ],
+            "nullable" : true
+          }
+        },
+        "required" : [ "message", "simulated", "transaction" ],
         "type" : "object"
       },
       "PostMessage" : {
@@ -3740,6 +3850,16 @@
           }
         },
         "required" : [ "description", "key", "updatedAt", "updatedBy", "value" ],
+        "type" : "object"
+      },
+      "SimulateRequest" : {
+        "properties" : {
+          "outcome" : {
+            "nullable" : true,
+            "type" : "string"
+          }
+        },
+        "required" : [ "outcome" ],
         "type" : "object"
       },
       "SmsOverview" : {
@@ -5245,6 +5365,31 @@
         "tags" : [ "giving-admin-controller" ]
       }
     },
+    "/api/v1/admin/payment-transactions" : {
+      "get" : {
+        "operationId" : "recent",
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/PaymentTransaction"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "bearer" : [ ]
+        } ],
+        "tags" : [ "online-payments-controller" ]
+      }
+    },
     "/api/v1/admin/payments" : {
       "get" : {
         "operationId" : "payments",
@@ -5371,6 +5516,46 @@
           "bearer" : [ ]
         } ],
         "tags" : [ "giving-admin-controller" ]
+      }
+    },
+    "/api/v1/admin/payments/{id}/payout" : {
+      "post" : {
+        "operationId" : "payout",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PayRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaymentTransactionView"
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "security" : [ {
+          "bearer" : [ ]
+        } ],
+        "tags" : [ "online-payments-controller" ]
       }
     },
     "/api/v1/admin/proofs" : {
@@ -7496,6 +7681,93 @@
         "tags" : [ "giving-controller" ]
       }
     },
+    "/api/v1/payments/online/config" : {
+      "get" : {
+        "operationId" : "config",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OnlinePaymentConfig"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "online-payments-controller" ]
+      }
+    },
+    "/api/v1/payments/transactions/{txId}/simulate" : {
+      "post" : {
+        "operationId" : "simulate",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "txId",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SimulateRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaymentTransactionView"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "bearer" : [ ]
+        } ],
+        "tags" : [ "online-payments-controller" ]
+      }
+    },
+    "/api/v1/payments/webhook" : {
+      "post" : {
+        "operationId" : "webhook",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "X-Menewa-Signature",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          }
+        },
+        "tags" : [ "online-payments-controller" ]
+      }
+    },
     "/api/v1/payments/{id}/declare" : {
       "post" : {
         "operationId" : "declare",
@@ -7556,6 +7828,79 @@
           "bearer" : [ ]
         } ],
         "tags" : [ "giving-controller" ]
+      }
+    },
+    "/api/v1/payments/{id}/pay" : {
+      "post" : {
+        "operationId" : "pay",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PayRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PaymentTransactionView"
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "security" : [ {
+          "bearer" : [ ]
+        } ],
+        "tags" : [ "online-payments-controller" ]
+      }
+    },
+    "/api/v1/payments/{id}/transactions" : {
+      "get" : {
+        "operationId" : "transactions",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/PaymentTransaction"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "bearer" : [ ]
+        } ],
+        "tags" : [ "online-payments-controller" ]
       }
     },
     "/api/v1/proofs" : {
