@@ -164,6 +164,7 @@ cd /opt/menewa/deploy/dev && sudo ./build-apk.sh
 - La clé de signature de test est créée au premier lancement dans `/opt/menewa-mobile-keys`, lisible par root seulement, en dehors de `/opt/menewa` : elle survit aux mises à jour. **Conservez-la** : elle permet d'installer chaque version par-dessus la précédente. Si elle est perdue, il faut désinstaller l'app.
 - La clé `MOBILE_API_KEY` est intégrée à l'APK. Elle ne protège que la zone de test ; ce n'est pas un secret fort.
 - Installation : ouvrir le lien sur le téléphone, puis autoriser l'installation depuis le navigateur (« sources inconnues »).
+- **Mises à jour :** `build-apk.sh` publie aussi `menewa-test.json` (numéro de la dernière version). À l'ouverture, l'application installée la lit et propose « Mettre à jour » : elle télécharge la nouvelle APK et ouvre l'installateur Android. Il n'est donc plus nécessaire de renvoyer le lien. Le menu « Rechercher une mise à jour » affiche la version installée. La clé de signature (`/opt/menewa-mobile-keys`) doit être conservée, sinon Android refuse d'installer la mise à jour par-dessus.
 
 ## Sauvegardes et restauration
 
