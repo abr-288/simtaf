@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/session.dart';
 import 'core/widgets.dart';
-import 'features/auth/login_screen.dart';
+import 'features/public/public_shell.dart';
 import 'features/home/home_shell.dart';
 
 void main() {
@@ -36,19 +36,20 @@ class MenewaApp extends StatelessWidget {
   }
 }
 
-/// Aiguille vers la connexion ou l'espace selon la session restaurée depuis le trousseau.
+/// Aiguille vers le site public ou l'espace membre selon la session restaurée depuis le trousseau.
 class SessionGate extends ConsumerWidget {
   const SessionGate({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Déconnexion (ou session révoquée) depuis un écran ouvert par-dessus : retour à l'écran de connexion.
+    // Connexion ou déconnexion depuis un écran ouvert par-dessus : retour au premier écran (espace ou site public).
     ref.listen(sessionProvider, (previous, next) {
-      if (previous?.authenticated == true && !next.authenticated) Navigator.of(context).popUntil((route) => route.isFirst);
+      if (previous?.authenticated != next.authenticated && !next.loading) Navigator.of(context).popUntil((route) => route.isFirst);
     });
     final session = ref.watch(sessionProvider);
     if (session.loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    if (!session.authenticated) return const LoginScreen();
+    if (!session.authenticated) return const PublicShell();
     return HomeShell(user: session.user!);
   }
 }

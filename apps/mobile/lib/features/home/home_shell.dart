@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/format.dart';
+import '../../core/api/api_client.dart';
 import '../../core/models.dart';
+import '../../core/pending.dart';
 import '../../core/session.dart';
 import '../campaigns/campaigns_screen.dart';
 import '../cart/cart_screen.dart';
@@ -13,6 +15,7 @@ import '../missions/missions_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../payments/my_payments_screen.dart';
 import '../profile/profile_screen.dart';
+import '../public/public_shell.dart';
 import '../requests/custom_request_screen.dart';
 import '../requests/requests_screen.dart';
 import '../rewards/rewards_screen.dart';
@@ -46,6 +49,28 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   void initState() {
     super.initState();
     _refreshUnread();
+    // Action demandée sur le site public avant connexion (don du simulateur, catalogue, services).
+    WidgetsBinding.instance.addPostFrameCallback((_) => _consumePending());
+  }
+
+  Future<void> _consumePending() async {
+    final pending = ref.read(pendingActionProvider);
+    if (pending == null || !mounted) return;
+    ref.read(pendingActionProvider.notifier).state = null;
+    final u = widget.user;
+    final tab = _tabs(u).indexWhere((t) => t.label == pending.tab);
+    if (tab >= 0) setState(() => _index = tab);
+    if (!pending.isCart || !(u.role == 'donor' || u.role == 'client')) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(apiProvider).post('/v1/cart', {'catalogItemId': pending.itemId, 'quantity': pending.quantity});
+    } on ApiException catch (e) {
+      // Don retiré du catalogue entre-temps : le membre choisit dans le catalogue.
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      return;
+    }
+    if (!mounted) return;
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => CartScreen(user: u, monthly: pending.monthly)));
   }
 
   Future<void> _refreshUnread() async {
@@ -126,6 +151,16 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           ListTile(leading: const Icon(Icons.notifications_outlined), title: const Text('Alertes'), onTap: () => go('Alertes', const NotificationsScreen())),
           ListTile(leading: const Icon(Icons.person_outline), title: const Text('Profil'), onTap: () => go('Profil', ProfileScreen(user: u))),
           ListTile(leading: const Icon(Icons.help_outline), title: const Text('Aide'), onTap: () => go('Aide', HelpScreen(user: u))),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.public),
+            title: const Text('Le site Menewa'),
+            subtitle: const Text('Accueil, Social Kitchen, Social Network…'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const PublicShell(fromSpace: true)));
+            },
+          ),
         ]),
       ),
     );
@@ -133,6 +168,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(pendingActionProvider, (previous, next) {
+      if (next != null) _consumePending();
+    });
     final u = widget.user;
     if (u.isAdmin) {
       return Scaffold(

@@ -4,20 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/models.dart';
 import '../../core/session.dart';
 import '../../core/widgets.dart';
+import '../public/public_pages.dart';
 
-/// Questions fréquentes (mêmes réponses que la page « Aide » du site) et message à l'équipe.
-const helpFaq = [
-  ('Comment me connecter ?', 'Saisissez votre numéro de téléphone : un code à 6 chiffres vous est envoyé par SMS. Il est valable 5 minutes (5 essais maximum).'),
-  ('Comment faire un don ?', 'Catalogue → panier → cible du don → échéancier. Vous pouvez aussi créer un don personnel, une action ou un engagement récurrent depuis le menu.'),
-  ('Comment payer ?', 'Depuis la page de votre demande, touchez « Payer par Mobile Money », choisissez l’opérateur et confirmez sur votre téléphone. '
-      'Vous pouvez aussi payer autrement (virement, espèces) puis déclarer le paiement avec sa référence : l’administration le valide.'),
-  ('Pourquoi ma demande a été refusée ?', 'Le motif est toujours indiqué sur la page de la demande. Vous pouvez écrire à l’équipe ci-dessous pour plus d’informations.'),
-  ('Quand un don est-il « réalisé » ?', 'Après remise effective, dépôt de preuves (photos, reçus, attestations) et contrôle administratif.'),
-  ('Prestataire : quand suis-je payé ?', 'Démarrez la mission, déposez vos preuves puis terminez-la. Après validation des preuves, votre rémunération est validée puis versée sur votre numéro Mobile Money.'),
-  ('Que sont les Mena ?', 'Des unités de récompense virtuelles gagnées par vos actions. Transfert et conversion monétaire sont désactivés jusqu’à validation juridique.'),
-  ('Comment signaler un problème ?', 'Ouvrez un litige depuis la page de votre demande ou de votre mission ; l’administration instruira le dossier.'),
-];
-
+/// Questions fréquentes (mêmes textes que la page « Aide » du site, voir [siteFaq]) et message à l'équipe.
 class HelpScreen extends ConsumerStatefulWidget {
   const HelpScreen({super.key, required this.user});
 
@@ -57,7 +46,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
     return ListView(padding: const EdgeInsets.all(16), children: [
       SectionCard(
         title: 'Questions fréquentes',
-        child: Column(children: helpFaq.map((q) => ExpansionTile(
+        child: Column(children: siteFaq.map((q) => ExpansionTile(
               tilePadding: EdgeInsets.zero,
               childrenPadding: const EdgeInsets.only(bottom: 12),
               expandedAlignment: Alignment.centerLeft,

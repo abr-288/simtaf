@@ -5,6 +5,7 @@ import 'package:menewa_mobile/core/format.dart';
 import 'package:menewa_mobile/core/models.dart';
 import 'package:menewa_mobile/features/help/help_screen.dart';
 import 'package:menewa_mobile/features/payments/online_payment.dart';
+import 'package:menewa_mobile/features/public/public_pages.dart';
 
 void main() {
   final user = AppUser(id: 1, phone: '+22890000001', name: 'Afi', role: 'donor');
@@ -21,7 +22,7 @@ void main() {
   });
 
   test('les réponses de l’aide reflètent le paiement Mobile Money et la clôture des missions', () {
-    final answers = helpFaq.map((q) => q.$2).join(' ');
+    final answers = siteFaq.map((q) => q.$2).join(' ');
     expect(answers, contains('Mobile Money'));
     expect(answers, contains('Démarrez la mission'));
   });

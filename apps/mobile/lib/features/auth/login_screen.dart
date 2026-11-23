@@ -9,7 +9,13 @@ import '../../core/widgets.dart';
 
 /// Connexion et inscription par téléphone + code SMS (OTP).
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.initialRegister = false, this.reason});
+
+  /// Ouvre directement l'onglet « Inscription ».
+  final bool initialRegister;
+
+  /// Pourquoi la connexion est demandée (ex. financer le don choisi dans le simulateur).
+  final String? reason;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -19,7 +25,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _phone = TextEditingController();
   final _name = TextEditingController();
   final _code = TextEditingController();
-  bool _register = false;
+  late bool _register = widget.initialRegister;
   String _role = 'donor';
   bool _codeStep = false;
   bool _busy = false;
@@ -75,6 +81,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: mint,
+      appBar: Navigator.of(context).canPop() ? AppBar(backgroundColor: mint, surfaceTintColor: mint) : null,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -83,6 +90,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const Text('Menewa Naya', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: brand)),
               const Text('Ensemble, on fait la différence.', style: TextStyle(color: brandDark)),
               const SizedBox(height: 24),
+              if (widget.reason != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: const Color(0xFFFFF3D6), borderRadius: BorderRadius.circular(10)),
+                  child: Text(widget.reason!, style: const TextStyle(fontSize: 13, color: Color(0xFF6B4A07))),
+                ),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(20),

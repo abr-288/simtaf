@@ -12,9 +12,12 @@ import '../requests/request_detail_screen.dart';
 
 /// Panier et validation de la demande (cible, échéancier, services annexes).
 class CartScreen extends ConsumerStatefulWidget {
-  const CartScreen({super.key, required this.user});
+  const CartScreen({super.key, required this.user, this.monthly = false});
 
   final AppUser user;
+
+  /// Don mensuel choisi dans le simulateur : fréquence mensuelle sur 12 mois proposée.
+  final bool monthly;
 
   @override
   ConsumerState<CartScreen> createState() => _CartScreenState();
@@ -24,12 +27,12 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   final _zone = TextEditingController();
   final _description = TextEditingController();
   final _customTarget = TextEditingController();
-  final _occurrences = TextEditingController(text: '3');
+  late final _occurrences = TextEditingController(text: widget.monthly ? '12' : '3');
   final _annex = <String, bool>{for (final k in annexLabels.keys) k: false};
   // Clé d'idempotence : un double envoi ne crée qu'une seule demande.
   final _idempotencyKey = '${DateTime.now().microsecondsSinceEpoch}-${Random().nextInt(1 << 30)}';
   String? _target;
-  String _recurrence = 'none';
+  late String _recurrence = widget.monthly ? 'monthly' : 'none';
   String _paymentMode = 'immediate';
   bool _sending = false;
 
