@@ -1684,6 +1684,32 @@
         "required" : [ "actorId", "createdAt", "id", "note", "requestId", "status" ],
         "type" : "object"
       },
+      "HomePhoto" : {
+        "properties" : {
+          "alt" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "available" : {
+            "type" : "boolean"
+          },
+          "label" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "slot" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "version" : {
+            "format" : "int64",
+            "nullable" : true,
+            "type" : "integer"
+          }
+        },
+        "required" : [ "alt", "available", "label", "slot", "version" ],
+        "type" : "object"
+      },
       "IdentityUserResponse" : {
         "properties" : {
           "bio" : {
@@ -5119,6 +5145,90 @@
         "tags" : [ "giving-admin-controller" ]
       }
     },
+    "/api/v1/admin/home-photos/{slot}" : {
+      "delete" : {
+        "operationId" : "remove",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "slot",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "additionalProperties" : {
+                    "type" : "string"
+                  },
+                  "type" : "object"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "bearer" : [ ]
+        } ],
+        "tags" : [ "home-photos" ]
+      },
+      "put" : {
+        "operationId" : "upload",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "slot",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "alt",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "properties" : {
+                  "file" : {
+                    "format" : "binary",
+                    "type" : "string"
+                  }
+                },
+                "type" : "object"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "additionalProperties" : {
+                    "type" : "string"
+                  },
+                  "type" : "object"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "bearer" : [ ]
+        } ],
+        "tags" : [ "home-photos" ]
+      }
+    },
     "/api/v1/admin/installments/{id}/done" : {
       "post" : {
         "operationId" : "installmentDone",
@@ -6531,7 +6641,7 @@
     },
     "/api/v1/admin/users" : {
       "get" : {
-        "operationId" : "list",
+        "operationId" : "list_1",
         "parameters" : [ {
           "in" : "query",
           "name" : "q",
@@ -8149,6 +8259,54 @@
           "bearer" : [ ]
         } ],
         "tags" : [ "providers-controller" ]
+      }
+    },
+    "/api/v1/public/home-photos" : {
+      "get" : {
+        "operationId" : "list",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/HomePhoto"
+                  },
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "home-photos" ]
+      }
+    },
+    "/api/v1/public/home-photos/{slot}" : {
+      "get" : {
+        "operationId" : "photo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "slot",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "format" : "byte",
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "home-photos" ]
       }
     },
     "/api/v1/public/listings" : {

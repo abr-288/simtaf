@@ -41,6 +41,8 @@ export type AuditEntry = {
   id: number; actorId: number | null; actorRole: string | null; actorName: string | null; action: string; entity: string | null;
   entityId: string | null; details: string | null; ip: string | null; createdAt: string;
 };
+/** Photo de la page d'accueil ; `version` change à chaque remplacement (à ajouter à l'URL). */
+export type HomePhoto = { slot: string; label: string; available: boolean; alt: string | null; version: number | null };
 export type ContactMessage = { id: number; name: string; email: string | null; phone: string | null; subject: string; message: string; handled: boolean; createdAt: string };
 export type PublicSettings = {
   'annex.prices'?: Record<string, number>; 'feature.token_transfer'?: boolean; 'feature.token_conversion'?: boolean;

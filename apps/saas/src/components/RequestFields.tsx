@@ -17,7 +17,7 @@ export function ScheduleFields({ recurrence = 'none', occurrences = 3 }: { recur
       <div>
         <label className="label">Mode de paiement</label>
         <select name="paymentMode" className="input" defaultValue="immediate">{Object.entries(PAYMENT_MODE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-        <p className="mt-1 text-xs text-slate-500">Don ponctuel : paiement immédiat. Engagement récurrent : préfinancement (tout payé d’avance) ou paiement à chaque échéance. Le règlement s’effectue via Mobile Money / virement et est validé par l’administration (intégration automatique à venir).</p>
+        <p className="mt-1 text-xs text-slate-500">Don ponctuel : paiement immédiat. Engagement récurrent : préfinancement (tout payé d’avance) ou paiement à chaque échéance. Vous pourrez ensuite payer par Mobile Money depuis la page de la demande, ou déclarer un paiement fait autrement (virement, espèces).</p>
       </div>
     </fieldset>
   );

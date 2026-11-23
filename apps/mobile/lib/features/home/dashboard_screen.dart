@@ -6,7 +6,10 @@ import '../../core/models.dart';
 import '../../core/session.dart';
 import '../../core/widgets.dart';
 import '../missions/mission_detail_screen.dart';
+import '../requests/custom_request_screen.dart';
 import '../requests/request_detail_screen.dart';
+import '../rewards/rewards_screen.dart';
+import 'home_banner.dart';
 
 /// Tableau de bord selon le profil (donateur/client, prestataire, partenaire, bénéficiaire).
 class DashboardScreen extends ConsumerWidget {
@@ -67,10 +70,15 @@ class DashboardScreen extends ConsumerWidget {
       );
     }
     if (user.role == 'beneficiary') {
-      return AsyncView<List<Json>>(
-        load: () async => asList(await api.get('/v1/beneficiary/requests')),
-        builder: (context, rows, reload) => ListView(padding: const EdgeInsets.all(16), children: [
+      return AsyncView<(List<Json>, List<Json>)>(
+        load: () async => (asList(await api.get('/v1/beneficiary/requests')), asList(await api.get('/v1/notifications'))),
+        builder: (context, data, reload) {
+          final (rows, alerts) = data;
+          return ListView(padding: const EdgeInsets.all(16), children: [
           _greeting(),
+          const Text('Les dons qui vous sont destinés. Les informations des donateurs restent confidentielles.',
+              style: TextStyle(fontSize: 13, color: Colors.black54)),
+          const SizedBox(height: 10),
           SectionCard(
             title: 'Dons reçus',
             child: rows.isEmpty
@@ -82,7 +90,19 @@ class DashboardScreen extends ConsumerWidget {
                       trailing: StatusChip(requestStatus, asStr(r['status']) ?? ''),
                     )).toList()),
           ),
-        ]),
+          SectionCard(
+            title: 'Dernières alertes',
+            child: alerts.isEmpty
+                ? const EmptyState('Aucune alerte.')
+                : Column(children: alerts.take(5).map((n) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(n['readAt'] == null ? Icons.circle : Icons.circle_outlined, size: 10, color: brand),
+                      title: Text(asStr(n['title']) ?? ''),
+                      subtitle: Text([asStr(n['body']), fdatetime(asStr(n['createdAt']))].whereType<String>().where((t) => t.isNotEmpty).join(' · ')),
+                    )).toList()),
+          ),
+        ]);
+        },
       );
     }
     return AsyncView<List<Json>>(
@@ -105,7 +125,22 @@ class DashboardScreen extends ConsumerWidget {
             StatTile(label: 'Preuves', value: '${d['proofsAvailable']}'),
           ]),
           const SizedBox(height: 8),
-          Container(
+          OutlinedButton.icon(
+            icon: const Icon(Icons.volunteer_activism_outlined),
+            label: const Text('Don personnel / action ou visite'),
+            onPressed: () async {
+              await Navigator.push(context, MaterialPageRoute(builder: (_) => CustomRequestScreen(user: user)));
+              await reload();
+            },
+          ),
+          const SizedBox(height: 8),
+          InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () async {
+              await Navigator.push(context, MaterialPageRoute(builder: (_) => Scaffold(appBar: AppBar(title: const Text('Token Mena')), body: const RewardsScreen())));
+              await reload();
+            },
+            child: Container(
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.only(bottom: 14),
             decoration: BoxDecoration(gradient: const LinearGradient(colors: [brand, Color(0xFF2F9A63)]), borderRadius: BorderRadius.circular(16)),
@@ -119,7 +154,9 @@ class DashboardScreen extends ConsumerWidget {
                       style: const TextStyle(color: Colors.white70, fontSize: 12)),
                 ]),
               ),
+              const Icon(Icons.chevron_right, color: Colors.white70),
             ]),
+          ),
           ),
           SectionCard(
             title: 'Mes dernières demandes',
@@ -141,8 +178,11 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _greeting() => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Text('Bonjour ${user.name} 👋', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: brandDark)),
-      );
+  Widget _greeting() => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text('Bonjour ${user.name} 👋', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: brandDark)),
+        ),
+        const HomeBanner(),
+      ]);
 }

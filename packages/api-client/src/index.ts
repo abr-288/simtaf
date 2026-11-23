@@ -6,7 +6,7 @@ import type {
   IdentityUser, ListingView, ManagedCatalogItem, Mission, MyProvider, MyRewards, Ok, OtpRequestInput, OtpRequestResult, PartnerDashboard,
   Payment, ProfileUpdate, PublicListing, PublicPartner, ProviderCard, ProviderDashboard, ProviderMissionDetail, ProviderOption, PublicSettings, ReceivedGift,
   RewardAccount, RewardsOverview, SmsOverview, SaveCatalogItemInput, ServiceOrderDetail, ServiceOrderView, Setting, StatFilters, Stats, Target,
-  TargetUsage, UserOption, PaymentTransaction, PaymentTransactionView, OnlinePaymentConfig,
+  TargetUsage, UserOption, HomePhoto, PaymentTransaction, PaymentTransactionView, OnlinePaymentConfig,
 } from '@menewa/shared-types';
 
 const apiBaseUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/api';
@@ -263,4 +263,10 @@ export const getPublicListings = () => request<PublicListing[]>('/v1/public/list
 export const getPublicProviders = (q?: string, cat?: string) => request<ProviderCard[]>(`/v1/public/providers${qs({ q, cat })}`);
 
 /* ───────── Fichiers protégés ───────── */
+/* Photos de l'accueil (site public et application mobile). */
+export const getHomePhotos = () => request<HomePhoto[]>('/v1/public/home-photos');
+export const fetchHomePhoto = (slot: string) => request<Response>(`/v1/public/home-photos/${encodeURIComponent(slot)}`, { raw: true });
+/** `form` : file (JPG, PNG ou WEBP), alt (description facultative). */
+export const uploadHomePhoto = (token: string, slot: string, form: FormData) => request<Ok>(`/v1/admin/home-photos/${encodeURIComponent(slot)}`, { token, method: 'PUT', form });
+export const deleteHomePhoto = (token: string, slot: string) => request<Ok>(`/v1/admin/home-photos/${encodeURIComponent(slot)}`, { token, method: 'DELETE' });
 export const fetchProtectedFile = (token: string, kind: string, id: number) => request<Response>(`/v1/files/${kind}/${id}`, { token, raw: true });

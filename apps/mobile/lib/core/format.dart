@@ -58,6 +58,7 @@ final paymentStatus = _statuses('payment');
 final orderStatus = _statuses('order');
 final listingStatus = _statuses('listing');
 final disputeStatus = _statuses('dispute');
+final tokenStatus = _statuses('token');
 
 final categories = referenceLabels['category']!;
 final kindLabels = referenceLabels['requestKind']!;

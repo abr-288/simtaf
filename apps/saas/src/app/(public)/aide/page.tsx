@@ -5,7 +5,8 @@ export const metadata = { title: "Aide — Menewa Naya" };
 const faq = [
   ["Comment me connecter ?", "Saisissez votre numéro de téléphone : un code à 6 chiffres (OTP) vous est envoyé par SMS. Il est valable 5 minutes (5 essais maximum)."],
   ["Comment faire un don ?", "Depuis votre espace : Catalogue → panier → cible du don → mode de paiement. Vous pouvez aussi créer un don personnel, une action ou un engagement récurrent."],
-  ["Comment payer ?", "Les paiements automatiques (Mobile Money, cartes) seront intégrés prochainement. Pour l’instant, effectuez le paiement puis déclarez-le avec sa référence : l’administration le valide."],
+  ["Comment payer ?", "Depuis la page de votre demande, cliquez sur « Payer par Mobile Money », choisissez l’opérateur (T-Money ou Flooz) et confirmez sur votre téléphone. Vous pouvez aussi payer autrement (virement, espèces) puis déclarer le paiement avec sa référence : l’administration le valide."],
+  ["Prestataire : quand suis-je payé ?", "Démarrez la mission, déposez vos preuves puis terminez-la. Après validation des preuves, votre rémunération est validée puis versée sur votre numéro Mobile Money."],
   ["Pourquoi ma demande a été refusée ?", "Le motif est toujours indiqué sur la page de la demande. Vous pouvez contacter l’équipe pour plus d’informations."],
   ["Quand un don est-il « réalisé » ?", "Après remise effective, dépôt de preuves (photos, reçus, attestations) et contrôle administratif."],
   ["Que sont les Mena ?", "Des unités de récompense virtuelles gagnées par vos actions. Transfert et conversion monétaire sont désactivés jusqu’à validation juridique."],

@@ -1063,6 +1063,24 @@ class ApiHistoryRow {
   final String? status;
 }
 
+class ApiHomePhoto {
+  const ApiHomePhoto({this.alt, required this.available, this.label, this.slot, this.version});
+
+  factory ApiHomePhoto.fromJson(Map<String, dynamic> j) => ApiHomePhoto(
+        alt: j['alt']?.toString(),
+        available: j['available'] == true,
+        label: j['label']?.toString(),
+        slot: j['slot']?.toString(),
+        version: j['version'] == null ? null : _int(j['version']),
+      );
+
+  final String? alt;
+  final bool available;
+  final String? label;
+  final String? slot;
+  final int? version;
+}
+
 class ApiIdentityUserResponse {
   const ApiIdentityUserResponse({this.bio, this.country, this.createdAt, this.email, this.id, this.name, this.notifPrefs, this.organization, required this.permissions, this.phone, this.role, this.status, this.zone});
 

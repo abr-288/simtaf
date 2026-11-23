@@ -45,7 +45,9 @@ const ACTIONS: Record<string, string> = {
   'service.order': 'Service commandé', 'service.agree': 'Service accepté',
   'tokens.adjust': 'Ajustement de tokens', 'tokens.transfer': 'Transfert de tokens', 'tokens.rule_create': 'Règle de tokens créée',
   'tokens.rule_update': 'Règle de tokens modifiée', 'tokens.rule_delete': 'Règle de tokens supprimée',
-  'settings.update': 'Paramètre modifié', 'report.export': 'Export de rapport', 'file.download': 'Fichier téléchargé',
+  'settings.update': 'Paramètre modifié', 'settings.home_photo': 'Photo de l’accueil modifiée', 'settings.home_photo_remove': 'Photo de l’accueil retirée',
+  'payment.online_start': 'Paiement Mobile Money lancé', 'payment.online_paid': 'Paiement Mobile Money reçu', 'payment.online_failed': 'Paiement Mobile Money échoué',
+  'payment.payout_start': 'Reversement lancé', 'payment.payout_paid': 'Reversement effectué', 'payment.payout_failed': 'Reversement échoué', 'report.export': 'Export de rapport', 'file.download': 'Fichier téléchargé',
 };
 
 type Search = { q?: string; action?: string; actorName?: string; from?: string; to?: string };

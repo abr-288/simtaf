@@ -150,7 +150,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                       subtitle: Text('+${fcfa(asInt(prices[e.key]))}'),
                     )),
                 const SizedBox(height: 8),
-                const Text('Le montant définitif est recalculé par la plateforme. Le paiement se déclare ensuite depuis la demande.',
+                const Text('Le montant définitif est recalculé par la plateforme. Vous pourrez ensuite payer par Mobile Money depuis la page de la demande.',
                     style: TextStyle(fontSize: 12, color: Colors.black54)),
                 const SizedBox(height: 12),
                 FilledButton(onPressed: _sending ? null : _checkout, child: Text(_sending ? 'Envoi…' : 'Envoyer la demande')),

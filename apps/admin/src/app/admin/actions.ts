@@ -145,6 +145,17 @@ export const adjustTokens = async (_p: ActionState, fd: FormData) => run((t) => 
 export const decideTokenTx = async (fd: FormData) => fire((t) => api.decideTokenTransaction(t, int(fd, 'id'), fd.get('decision') === 'approve'));
 
 /* ───────── Paramètres ───────── */
+/* Photos de l'accueil (site public et application mobile). */
+export const uploadHomePhoto = async (_p: ActionState, fd: FormData) =>
+  run((t) => {
+    const file = fileOf(fd, 'file');
+    if (!file) throw new Error('Sélectionnez une photo (JPG, PNG ou WEBP).');
+    const form = new FormData();
+    form.set('file', file, file.name);
+    form.set('alt', str(fd, 'alt', 200));
+    return api.uploadHomePhoto(t, str(fd, 'slot', 20), form);
+  });
+export const deleteHomePhoto = async (_p: ActionState, fd: FormData) => run((t) => api.deleteHomePhoto(t, str(fd, 'slot', 20)));
 export const saveSetting = async (_p: ActionState, fd: FormData) =>
   run((t) => {
     let value: unknown;

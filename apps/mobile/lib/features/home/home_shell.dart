@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/format.dart';
 import '../../core/models.dart';
 import '../../core/session.dart';
 import '../campaigns/campaigns_screen.dart';
+import '../cart/cart_screen.dart';
+import '../help/help_screen.dart';
 import '../catalog/catalog_screen.dart';
 import '../listings/my_listings_screen.dart';
 import '../missions/missions_screen.dart';
 import '../notifications/notifications_screen.dart';
+import '../payments/my_payments_screen.dart';
 import '../profile/profile_screen.dart';
+import '../requests/custom_request_screen.dart';
 import '../requests/requests_screen.dart';
+import '../rewards/rewards_screen.dart';
 import '../services/services_screen.dart';
 import 'dashboard_screen.dart';
 
@@ -75,6 +81,56 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     await _refreshUnread();
   }
 
+  /// Menu latéral : écrans secondaires selon le rôle (l'API applique les droits).
+  Widget _drawer(AppUser u) {
+    final requester = u.role == 'donor' || u.role == 'client';
+    void go(String title, Widget page) {
+      Navigator.pop(context);
+      _open(title, page);
+    }
+
+    return Drawer(
+      child: SafeArea(
+        child: ListView(children: [
+          ListTile(
+            title: Text(u.name.isEmpty ? u.phone : u.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('${roleLabels[u.role] ?? u.role} · ${u.phone}'),
+          ),
+          const Divider(),
+          if (requester) ...[
+            ListTile(
+              leading: const Icon(Icons.volunteer_activism_outlined),
+              title: const Text('Don personnel / action'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => CustomRequestScreen(user: u)));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.shopping_cart_outlined),
+              title: const Text('Mon panier'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => CartScreen(user: u)));
+              },
+            ),
+          ],
+          if (u.role != 'beneficiary')
+            ListTile(
+              leading: const Icon(Icons.account_balance_wallet_outlined),
+              title: Text(u.role == 'provider' ? 'Mes rémunérations' : 'Mes paiements'),
+              onTap: () => go(u.role == 'provider' ? 'Mes rémunérations' : 'Mes paiements', MyPaymentsScreen(user: u)),
+            ),
+          if (u.role != 'beneficiary')
+            ListTile(leading: const Text('🪙', style: TextStyle(fontSize: 20)), title: const Text('Token Mena'), onTap: () => go('Token Mena', const RewardsScreen())),
+          ListTile(leading: const Icon(Icons.notifications_outlined), title: const Text('Alertes'), onTap: () => go('Alertes', const NotificationsScreen())),
+          ListTile(leading: const Icon(Icons.person_outline), title: const Text('Profil'), onTap: () => go('Profil', ProfileScreen(user: u))),
+          ListTile(leading: const Icon(Icons.help_outline), title: const Text('Aide'), onTap: () => go('Aide', HelpScreen(user: u))),
+        ]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final u = widget.user;
@@ -106,6 +162,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           IconButton(tooltip: 'Profil', icon: const Icon(Icons.person_outline), onPressed: () => _open('Profil', ProfileScreen(user: u))),
         ],
       ),
+      drawer: _drawer(u),
       body: IndexedStack(index: index, children: tabs.map((t) => t.page).toList()),
       bottomNavigationBar: tabs.length < 2 ? null : NavigationBar(
         selectedIndex: index,

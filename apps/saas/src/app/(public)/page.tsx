@@ -3,7 +3,7 @@ import {
   ArrowRight, BookOpen, Building2, CreditCard, Globe, HandHeart, Handshake, Heart, Landmark, Leaf,
   Network, Search, TrendingUp, User, Users,
 } from "lucide-react";
-import { getCatalog, getPublicSettings } from "@menewa/api-client";
+import { getCatalog, getHomePhotos, getPublicSettings } from "@menewa/api-client";
 import ImpactSimulator, { type SimItem } from "@/components/ImpactSimulator";
 
 export const dynamic = "force-dynamic";
@@ -35,12 +35,16 @@ export default async function Home() {
   const simItems: SimItem[] = await getCatalog()
     .then((c) => c.items.map((i) => ({ id: i.id, title: i.title, description: i.description, unit: i.unit, unitPrice: i.unitPrice, emoji: i.emoji })))
     .catch(() => []);
+  // Photos téléversées par l'administration (Admin → Paramètres) ; un emplacement vide n'affiche pas d'image.
+  const photos = Object.fromEntries(
+    (await getHomePhotos().catch(() => [])).filter((p) => p.available).map((p) => [p.slot, { src: `/photos/${p.slot}?v=${p.version ?? 0}`, alt: p.alt }]),
+  ) as Record<string, { src: string; alt: string | null }>;
 
   return (
     <>
       {/* HERO */}
       <section className="relative isolate overflow-hidden bg-[#fffdf8]">
-        <img src="/images/hero.jpg" alt="Une femme togolaise souriante en tenue wax" className="absolute inset-y-0 right-0 -z-10 h-full w-full object-cover object-[60%_25%] lg:w-[68%]" />
+        {photos.hero ? <img src={photos.hero.src} alt={photos.hero.alt ?? "Une femme togolaise souriante en tenue wax"} className="absolute inset-y-0 right-0 -z-10 h-full w-full object-cover object-[60%_25%] lg:w-[68%]" /> : null}
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#fffdf8] via-[#fffdf8]/85 to-[#fffdf8]/10 lg:via-[#fffdf8]/60 lg:to-transparent" />
         <div className="absolute inset-y-0 right-0 -z-10 hidden w-1/3 bg-gradient-to-l from-black/35 to-transparent lg:block" />
         <div className="mx-auto flex min-h-[340px] max-w-[1400px] items-center px-4 py-10 lg:px-9">
@@ -68,7 +72,7 @@ export default async function Home() {
       {/* DEUX UNIVERS */}
       <section className="mx-auto grid max-w-[1400px] gap-5 px-4 py-5 lg:grid-cols-2 lg:px-7">
         <article className="relative isolate flex min-h-[232px] overflow-hidden rounded-2xl bg-gradient-to-r from-[#e3f1e8] to-[#f3faf5] p-6">
-          <img src="/images/kitchen.jpg" alt="Un enfant souriant tenant un bol de nourriture" className="absolute inset-y-0 right-0 -z-10 h-full w-[46%] object-cover object-[center_30%]" />
+          {photos.kitchen ? <img src={photos.kitchen.src} alt={photos.kitchen.alt ?? "Un enfant souriant tenant un bol de nourriture"} className="absolute inset-y-0 right-0 -z-10 h-full w-[46%] object-cover object-[center_30%]" /> : null}
           <div className="absolute inset-y-0 right-0 -z-10 w-[46%] bg-gradient-to-r from-[#f3faf5] via-[#f3faf5]/30 to-transparent" />
           <div className="flex gap-4">
             <span className="grid h-[76px] w-[76px] shrink-0 place-items-center rounded-full bg-brand text-sun"><HandHeart size={38} /></span>
@@ -83,7 +87,7 @@ export default async function Home() {
         </article>
 
         <article className="relative isolate flex min-h-[232px] overflow-hidden rounded-2xl bg-gradient-to-r from-[#fff3d6] to-[#fffaf0] p-6">
-          <img src="/images/network.jpg" alt="Un homme travaillant sur ordinateur portable" className="absolute inset-y-0 right-0 -z-10 h-full w-[40%] object-cover object-[center_20%]" />
+          {photos.network ? <img src={photos.network.src} alt={photos.network.alt ?? "Un homme travaillant sur ordinateur portable"} className="absolute inset-y-0 right-0 -z-10 h-full w-[40%] object-cover object-[center_20%]" /> : null}
           <div className="absolute inset-y-0 right-0 -z-10 w-[40%] bg-gradient-to-r from-[#fffaf0] via-[#fffaf0]/30 to-transparent" />
           <div className="flex gap-4">
             <span className="grid h-[76px] w-[76px] shrink-0 place-items-center rounded-full bg-sun text-brand-dark"><Users size={38} /></span>
@@ -218,7 +222,7 @@ export default async function Home() {
       {/* TÉMOIGNAGES */}
       <section className="bg-brand text-white">
         <div className="mx-auto grid max-w-[1400px] lg:grid-cols-[210px_1fr_300px]">
-          <img src="/images/man.jpg" alt="Koffi A., partenaire de Menewa" className="hidden h-full min-h-[140px] w-full object-cover object-[center_20%] lg:block" />
+          {photos.man ? <img src={photos.man.src} alt={photos.man.alt ?? "Koffi A., partenaire de Menewa"} className="hidden h-full min-h-[140px] w-full object-cover object-[center_20%] lg:block" /> : <div aria-hidden="true" className="hidden min-h-[140px] bg-brand-dark lg:block" />}
           <div className="grid gap-6 px-6 py-6 md:grid-cols-2 md:gap-0">
             <div className="md:pr-8">
               <p className="text-sm font-bold">Ils nous font confiance</p>
@@ -232,7 +236,7 @@ export default async function Home() {
               </div>
             </div>
             <div className="flex items-center gap-3 md:border-l md:border-white/20 md:pl-8">
-              <img src="/images/woman.jpg" alt="Aminata B." className="h-14 w-14 shrink-0 rounded-full border-2 border-sun object-cover" />
+              {photos.woman ? <img src={photos.woman.src} alt={photos.woman.alt ?? "Aminata B."} className="h-14 w-14 shrink-0 rounded-full border-2 border-sun object-cover" /> : <span aria-hidden="true" className="grid h-14 w-14 shrink-0 place-items-center rounded-full border-2 border-sun bg-brand-dark text-lg font-bold text-sun">A</span>}
               <span className="font-serif text-5xl leading-none text-sun">“</span>
               <div>
                 <p className="text-[11.5px] leading-relaxed text-white/90">J’ai trouvé des missions qui correspondent à mes compétences. Menewa m’a permis de mettre mon savoir-faire au service des autres.</p>

@@ -32,6 +32,7 @@ export type ContractChecks = [
   Expect<Matches<Omit<T.Setting, 'value'>, Omit<S['SettingView'], 'value'>>>,
   Expect<Matches<T.AuditEntry, S['AuditView']>>,
   Expect<Matches<T.ContactMessage, S['ContactView']>>,
+  Expect<Matches<T.HomePhoto, S['HomePhoto']>>,
   Expect<Matches<T.GiftRequest, S['RequestRow']>>,
   Expect<Matches<T.RequestItem, S['ItemRow']>>,
   Expect<Matches<T.HistoryEntry, S['HistoryRow']>>,
