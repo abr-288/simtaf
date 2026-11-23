@@ -4,10 +4,10 @@ Ce kit déploie PostgreSQL, l'API (Spring), la console d'administration et l'esp
 
 - le HTTPS automatique ;
 - des noms gratuits `sslip.io`, qui résolvent vers l'IP du serveur ;
-- un mot de passe d'accès (authentification HTTP, utilisateur `menewa`) sur les deux sites web ;
+- des sites web ouverts sans mot de passe d'accès (retiré le 2026-11-23) : seule la connexion par code OTP protège les espaces ;
 - une clé d'en-tête `X-Menewa-Key` sur l'API mobile.
 
-> **Zone de test.** Par défaut, les codes OTP s'affichent à l'écran et aucun SMS n'est envoyé. Pour envoyer les codes par SMS, voir [Codes OTP par SMS (Twilio)](#codes-otp-par-sms-twilio). N'y mettez jamais de vraies données personnelles.
+> **Zone de test publique.** Les deux sites sont accessibles à tous. Par défaut, les codes OTP s'affichent à l'écran : **n'importe qui peut donc se connecter à n'importe quel compte, y compris l'administration** (`ADMIN_PHONE`). Pour l'éviter, envoyez les codes par SMS, voir [Codes OTP par SMS (Twilio)](#codes-otp-par-sms-twilio). N'y mettez jamais de vraies données personnelles.
 
 ## Sommaire
 
@@ -31,8 +31,8 @@ Ce kit déploie PostgreSQL, l'API (Spring), la console d'administration et l'esp
 
 | Adresse | Conteneur | Accès |
 |---|---|---|
-| `https://menewa.<ip-avec-tirets>.sslip.io` | `menewa-saas` (espace membre et site public) | mot de passe d'accès |
-| `https://menewa-admin.<ip-avec-tirets>.sslip.io` | `menewa-admin` (administration) | mot de passe d'accès, puis téléphone `ADMIN_PHONE` |
+| `https://menewa.<ip-avec-tirets>.sslip.io` | `menewa-saas` (espace membre et site public) | public |
+| `https://menewa-admin.<ip-avec-tirets>.sslip.io` | `menewa-admin` (administration) | téléphone `ADMIN_PHONE` (code OTP) |
 | `https://api-menewa.<ip-avec-tirets>.sslip.io/api` | `menewa-backend` (pour l'application mobile) | en-tête `X-Menewa-Key` ; seul `/api/*` est relayé |
 | — | `menewa-db` (PostgreSQL 16) | réseau interne seulement |
 
@@ -83,7 +83,7 @@ cd /opt/menewa/deploy/dev && ./deploy.sh
 
 Au premier lancement, `deploy.sh` :
 
-1. génère `.env` (secrets aléatoires, noms d'hôte calculés à partir de l'IP publique) et `.access-password`. Le mot de passe d'accès n'est affiché qu'une seule fois ; notez-le ;
+1. génère `.env` (secrets aléatoires, noms d'hôte calculés à partir de l'IP publique) ;
 2. construit les images et démarre les conteneurs ;
 3. ajoute les deux blocs Caddy à `/srv/proxy/Caddyfile`, après une sauvegarde `Caddyfile.avant-menewa-<date>`. Le Caddyfile est validé avant le rechargement. S'il est invalide, la sauvegarde est restaurée et le proxy reste tel quel ;
 4. planifie la sauvegarde nocturne (`/etc/cron.d/menewa-backup`).
@@ -106,7 +106,7 @@ cd /opt/menewa/deploy/dev && sudo ./backup.sh
 # 3. Préparer la nouvelle version et y recopier les secrets
 sudo rm -rf /opt/menewa.new && sudo install -d -o "$USER" -g "$USER" /opt/menewa.new
 tar -xzf /tmp/menewa.tar.gz -C /opt/menewa.new && rm /tmp/menewa.tar.gz
-cp -p /opt/menewa/deploy/dev/.env /opt/menewa/deploy/dev/.access-password /opt/menewa.new/deploy/dev/
+cp -p /opt/menewa/deploy/dev/.env /opt/menewa.new/deploy/dev/
 
 # 4. Bascule (l'ancienne version est gardée dans /opt/menewa.prev), puis redéploiement
 sudo rm -rf /opt/menewa.prev && sudo mv /opt/menewa /opt/menewa.prev && sudo mv /opt/menewa.new /opt/menewa
@@ -139,7 +139,8 @@ Supprimez ensuite `/opt/menewa.rate` une fois le problème compris.
 # Sur le serveur
 docker compose --env-file .env ps                      # 4 conteneurs « Up », menewa-db « healthy »
 docker compose --env-file .env logs --since 10m backend | grep -iE "error|exception"
-curl -s -o /dev/null -w '%{http_code}\n' https://menewa.<ip-avec-tirets>.sslip.io   # 401 attendu (mot de passe d'accès)
+curl -s -o /dev/null -w '%{http_code}
+' https://menewa.<ip-avec-tirets>.sslip.io   # 200 attendu
 ```
 
 Tests de bout en bout (Playwright), depuis le poste :
@@ -147,7 +148,7 @@ Tests de bout en bout (Playwright), depuis le poste :
 ```sh
 cd e2e
 npx playwright install chromium   # une seule fois
-DEMO_PASSWORD=<contenu de .access-password> npx playwright test
+npx playwright test
 ```
 
 `SAAS_URL`, `ADMIN_URL` et `ADMIN_PHONE` permettent de viser une autre zone. Par défaut, les tests visent la zone de dev actuelle. Ils créent des comptes en `+22899…`, un préfixe réservé aux tests.
@@ -158,11 +159,11 @@ DEMO_PASSWORD=<contenu de .access-password> npx playwright test
 cd /opt/menewa/deploy/dev && sudo ./build-apk.sh
 ```
 
-- Le script compile `apps/mobile` (inclus dans l'archive) avec l'image Flutter de la CI. L'APK appelle l'API de la zone de dev. Il est publié sur `https://<SAAS_HOST>/telechargement/menewa-test.apk`, derrière le mot de passe d'accès.
+- Le script compile `apps/mobile` (inclus dans l'archive) avec l'image Flutter de la CI. L'APK appelle l'API de la zone de dev. Il est publié sur `https://<SAAS_HOST>/telechargement/menewa-test.apk` (lien public).
 - Les dépendances Dart et Gradle et les composants Android SDK sont gardés dans des volumes Docker (`menewa_flutter_cache`, `menewa_gradle_cache`, `menewa_android_sdk`). Seul le premier build les télécharge.
 - La clé de signature de test est créée au premier lancement dans `/opt/menewa-mobile-keys`, lisible par root seulement, en dehors de `/opt/menewa` : elle survit aux mises à jour. **Conservez-la** : elle permet d'installer chaque version par-dessus la précédente. Si elle est perdue, il faut désinstaller l'app.
 - La clé `MOBILE_API_KEY` est intégrée à l'APK. Elle ne protège que la zone de test ; ce n'est pas un secret fort.
-- Installation : ouvrir le lien sur le téléphone, saisir le mot de passe d'accès, puis autoriser l'installation depuis le navigateur (« sources inconnues »).
+- Installation : ouvrir le lien sur le téléphone, puis autoriser l'installation depuis le navigateur (« sources inconnues »).
 
 ## Sauvegardes et restauration
 
@@ -186,7 +187,6 @@ docker compose --env-file .env logs -f backend     # journaux de l'API (ou saas,
 docker compose --env-file .env restart backend     # redémarrer un service
 docker compose --env-file .env down                # tout arrêter (données conservées)
 docker compose --env-file .env down -v             # tout arrêter ET effacer les données (irréversible)
-cat .access-password                                # mot de passe d'accès
 ```
 
 ## Configuration (`.env`)
@@ -203,7 +203,7 @@ Généré par `deploy.sh` (droits `600`). Il n'est pas versionné et il est reco
 | `OTP_DEV_MODE`, `OTP_TEST_PHONES`, `SMS_PROVIDER`, `TWILIO_*` | facultatives, voir [Codes OTP par SMS](#codes-otp-par-sms-twilio) |
 | `BACKUP_RSYNC_TARGET`, `BACKUP_DIR`, `BACKUP_KEEP_DAYS` | facultatives, voir [Sauvegardes](#sauvegardes-et-restauration) |
 
-Le Caddyfile contient un hash du mot de passe d'accès. Modifier `.access-password` ne suffit donc pas : il faut aussi remplacer le hash dans `/srv/proxy/Caddyfile` (`docker exec caddy caddy hash-password`), puis valider et recharger Caddy.
+Pour remettre un mot de passe d'accès sur un site : ajouter un bloc `basic_auth` (hash obtenu avec `docker exec caddy caddy hash-password`) dans `/srv/proxy/Caddyfile`, après sauvegarde, puis valider et recharger Caddy.
 
 ## Codes OTP par SMS (Twilio)
 
@@ -254,7 +254,6 @@ Brancher un agrégateur réel revient à écrire une implémentation de `Payment
 
 | Symptôme | Piste |
 |---|---|
-| 401 sur un site | normal sans le mot de passe d'accès (`cat .access-password`) |
 | 401 « Clé d'application requise » sur l'API | en-tête `X-Menewa-Key` absent ou différent de `MOBILE_API_KEY` |
 | 404 sur `api-menewa…/actuator/...` | normal : seul `/api/*` est relayé |
 | 502 sur un site | le conteneur ne tourne pas ou démarre encore : `docker compose --env-file .env ps` et ses journaux |

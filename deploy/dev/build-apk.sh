@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # Compile l'APK Android de test, branchée sur l'API de la zone de dev, et la publie sur
-#   https://$SAAS_HOST/telechargement/menewa-test.apk   (derrière le mot de passe d'accès)
+#   https://$SAAS_HOST/telechargement/menewa-test.apk   (lien public)
 # Usage (sur le serveur, après avoir copié apps/mobile dans /opt/menewa/apps/mobile) : sudo ./build-apk.sh
 # La clé de signature de test est créée au premier lancement dans /opt/menewa-mobile-keys (root seulement) :
 # la conserver permet d'installer les versions suivantes par-dessus, sans désinstaller.
