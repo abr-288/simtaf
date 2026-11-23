@@ -10,4 +10,11 @@ class AppConfig {
   /// Clé d'application exigée par le proxy de la zone de dev (en-tête X-Menewa-Key) : `--dart-define=API_KEY=...`.
   /// Vide en local, où l'API est appelée directement.
   static const apiKey = String.fromEnvironment('API_KEY');
+
+  /// Numéro de version de cette APK (minutes depuis 2026, fixé par deploy/dev/build-apk.sh) ; 0 en développement.
+  static const appBuild = int.fromEnvironment('APP_BUILD');
+
+  /// Fiche de la dernière APK publiée ({"build", "apk"}) : `--dart-define=UPDATE_URL=https://…/telechargement/menewa-test.json`.
+  /// Vide : pas de vérification de mise à jour (développement local).
+  static const updateUrl = String.fromEnvironment('UPDATE_URL');
 }

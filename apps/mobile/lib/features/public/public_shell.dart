@@ -6,6 +6,7 @@ import '../../core/widgets.dart';
 import 'public_home_screen.dart';
 import 'public_pages.dart';
 import 'public_widgets.dart';
+import '../update/app_update.dart';
 
 /// Site public dans l'application : premier écran sans connexion (même contenu que le site web).
 /// Ouvert depuis l'espace membre (`fromSpace`), il propose « Mon espace » au lieu de la connexion.
@@ -134,6 +135,8 @@ class _MorePage extends ConsumerWidget {
             Expanded(child: SiteButton('S’inscrire', onPressed: () => openLogin(context, ref, register: true))),
           ]),
         ),
+      const Divider(),
+      const VersionTile(),
       const PublicFooterNote(),
     ]);
   }

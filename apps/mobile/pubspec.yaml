@@ -13,6 +13,8 @@ dependencies:
   flutter_riverpod: ^2.6.1
   flutter_secure_storage: ^9.2.2
   image_picker: ^1.1.2
+  # Mise à jour de l'APK de test depuis l'application (téléchargement puis installateur Android).
+  ota_update: ^7.1.0
 
 dev_dependencies:
   flutter_test:

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/session.dart';
 import 'core/widgets.dart';
 import 'features/public/public_shell.dart';
+import 'features/update/app_update.dart';
 import 'features/home/home_shell.dart';
 
 void main() {
@@ -31,7 +32,8 @@ class MenewaApp extends StatelessWidget {
           isDense: true,
         ),
       ),
-      home: const SessionGate(),
+      // Vérifie au démarrage si une nouvelle version de l'APK est publiée.
+      home: const UpdateGate(child: SessionGate()),
     );
   }
 }

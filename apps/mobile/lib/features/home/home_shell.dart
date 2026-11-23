@@ -16,6 +16,7 @@ import '../notifications/notifications_screen.dart';
 import '../payments/my_payments_screen.dart';
 import '../profile/profile_screen.dart';
 import '../public/public_shell.dart';
+import '../update/app_update.dart';
 import '../requests/custom_request_screen.dart';
 import '../requests/requests_screen.dart';
 import '../rewards/rewards_screen.dart';
@@ -161,6 +162,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const PublicShell(fromSpace: true)));
             },
           ),
+          const VersionTile(),
         ]),
       ),
     );

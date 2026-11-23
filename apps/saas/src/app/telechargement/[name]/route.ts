@@ -7,14 +7,15 @@ export const dynamic = 'force-dynamic';
 
 /**
  * Téléchargement des versions de test de l'application mobile (APK Android), déposées par deploy/dev/build-apk.sh
- * dans DOWNLOADS_DIR. En zone de dev, l'accès est déjà protégé par le mot de passe d'accès du proxy.
+ * dans DOWNLOADS_DIR, et fiche de la dernière version (menewa-test.json) lue par l'application pour se mettre à jour.
  */
 const DIR = process.env.DOWNLOADS_DIR ?? '/data/downloads';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;
   // Nom simple uniquement : aucun chemin, aucune autre extension.
-  if (!/^[a-z0-9][a-z0-9._-]{0,80}\.apk$/.test(name)) return new Response('Introuvable', { status: 404 });
+  if (!/^[a-z0-9][a-z0-9._-]{0,80}\.(apk|json)$/.test(name)) return new Response('Introuvable', { status: 404 });
+  const json = name.endsWith('.json');
   const file = path.join(DIR, name);
   try {
     const info = await stat(file);
@@ -22,9 +23,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ name: s
     const body = Readable.toWeb(createReadStream(file)) as ReadableStream;
     return new Response(body, {
       headers: {
-        'Content-Type': 'application/vnd.android.package-archive',
+        'Content-Type': json ? 'application/json; charset=utf-8' : 'application/vnd.android.package-archive',
         'Content-Length': String(info.size),
-        'Content-Disposition': `attachment; filename="${name}"`,
+        ...(json ? {} : { 'Content-Disposition': `attachment; filename="${name}"` }),
         'Cache-Control': 'no-store',
         'X-Content-Type-Options': 'nosniff',
       },

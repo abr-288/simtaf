@@ -30,11 +30,15 @@ work="$OUT/src"; cp -a "$SRC" "$work"; cp "$KEYS/key.properties" "$work/android/
 build=$(( ($(date +%s) - 1767225600) / 60 ))   # numéro de version croissant (minutes depuis 2026) : mise à jour possible
 docker run --rm --cpus=2 -v "$work":/app -v "$KEYS":/keys:ro -v menewa_flutter_cache:/root/.pub-cache -v menewa_gradle_cache:/root/.gradle \
   -v menewa_android_sdk:/opt/android-sdk-linux -w /app "$IMAGE" sh -c "flutter pub get >/dev/null && flutter build apk --release --build-number=$build \
-    --dart-define=API_BASE_URL=https://$API_HOST/api --dart-define=API_KEY=$MOBILE_API_KEY"
+    --dart-define=API_BASE_URL=https://$API_HOST/api --dart-define=API_KEY=$MOBILE_API_KEY \
+    --dart-define=APP_BUILD=$build --dart-define=UPDATE_URL=https://$SAAS_HOST/telechargement/menewa-test.json"
 apk="$work/build/app/outputs/flutter-apk/app-release.apk"
 [ -f "$apk" ] || { echo "APK introuvable après la compilation." >&2; exit 1; }
 
-# 3. Publication dans le volume lu par le site (menewa-saas).
+# 3. Publication dans le volume lu par le site (menewa-saas). La fiche menewa-test.json est écrite après l'APK :
+#    les applications installées y lisent le numéro de la dernière version et proposent la mise à jour.
 cp "$apk" "$OUT/menewa-test.apk"
-docker run --rm -v menewa_downloads:/d -v "$OUT":/o:ro alpine:3.20 sh -c 'cp /o/menewa-test.apk /d/menewa-test.apk.part && mv /d/menewa-test.apk.part /d/menewa-test.apk'
+printf '{"build":%s,"apk":"https://%s/telechargement/menewa-test.apk","publishedAt":"%s"}\n' "$build" "$SAAS_HOST" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$OUT/menewa-test.json"
+docker run --rm -v menewa_downloads:/d -v "$OUT":/o:ro alpine:3.20 sh -c 'cp /o/menewa-test.apk /d/menewa-test.apk.part && mv /d/menewa-test.apk.part /d/menewa-test.apk \
+  && cp /o/menewa-test.json /d/menewa-test.json.part && mv /d/menewa-test.json.part /d/menewa-test.json'
 echo "APK publiée ($(du -h "$apk" | cut -f1), version $build) : https://$SAAS_HOST/telechargement/menewa-test.apk"
